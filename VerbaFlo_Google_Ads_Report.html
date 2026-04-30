@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VerbaFlo — Google Ads Performance Report | Nov 2025–Apr 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0D0F0C;--paper:#F5F3EE;--paper-dark:#EAE7E0;
+  --accent:#1B4D3E;--accent-light:rgba(27,77,62,0.1);
+  --gold:#C8922A;--blue:#185FA5;--red:#C0392B;--purple:#534AB7;--amber:#BA7517;--teal:#0F6E56;
+  --text:#1A1C19;--muted:#6B6D68;--light:#9B9D98;--border:rgba(0,0,0,0.07);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--text);line-height:1.6}
+header{background:var(--accent);padding:40px 48px;position:relative;overflow:hidden}
+header::after{content:'';position:absolute;right:-60px;top:-60px;width:300px;height:300px;border-radius:50%;background:rgba(200,146,42,0.15)}
+.header-inner{max-width:1200px;margin:0 auto;position:relative;z-index:1}
+.header-label{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,0.5);margin-bottom:8px}
+header h1{font-family:'Fraunces',serif;font-size:32px;font-weight:800;color:white;letter-spacing:-1px;line-height:1.1;margin-bottom:6px}
+header p{font-size:14px;color:rgba(255,255,255,0.6);font-weight:300}
+.container{max-width:1200px;margin:0 auto;padding:40px 48px}
+.summary-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:40px}
+.stat-card{background:white;border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+.stat-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--light);margin-bottom:4px}
+.stat-val{font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:var(--ink);line-height:1}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:3px}
+.stat-sub.up{color:#3B6D11}.stat-sub.dn{color:var(--red)}
+section.block{margin-bottom:48px}
+.block-title{font-family:'Fraunces',serif;font-size:18px;font-weight:700;color:var(--ink);letter-spacing:-0.3px;margin-bottom:4px}
+.block-sub{font-size:13px;color:var(--muted);margin-bottom:20px;font-weight:300}
+.chart-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.chart-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}
+.chart-card{background:white;border:1px solid var(--border);border-radius:12px;padding:24px}
+.chart-label{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:14px}
+.chart-wrap{position:relative;width:100%}
+.h280{height:280px}.h220{height:220px}.h200{height:200px}
+.legend-row{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:10px}
+.leg{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)}
+.leg-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.table-wrap{background:white;border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-top:16px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead{background:var(--accent)}
+thead th{color:white;padding:10px 14px;text-align:left;font-size:11px;font-weight:500;letter-spacing:.03em}
+tbody tr:nth-child(even){background:#F9F9F8}
+tbody tr:hover{background:var(--accent-light)}
+tbody td{padding:9px 14px;border-bottom:1px solid var(--border);color:var(--text)}
+.pill{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:500}
+.pill-g{background:#E8F5E9;color:#2E7D32}.pill-r{background:#FFEBEE;color:#C62828}.pill-a{background:#FFF8E1;color:#F57F17}
+hr.divider{border:none;border-top:1px solid var(--border);margin:40px 0}
+footer{background:var(--ink);padding:24px 48px;display:flex;justify-content:space-between;align-items:center}
+footer span{font-size:12px;color:rgba(255,255,255,0.35)}
+.footer-logo{font-family:'Fraunces',serif;font-weight:700;font-size:16px;color:white}
+.footer-logo span{color:var(--gold)}
+@media(max-width:900px){
+  .summary-grid{grid-template-columns:repeat(3,1fr)}
+  .chart-grid-2,.chart-grid-3{grid-template-columns:1fr}
+  .container{padding:24px}
+  header{padding:28px 24px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="header-label">Performance Report — Google Ads</div>
+    <h1>VerbaFlo — 6 Month Campaign Analysis</h1>
+    <p>November 2025 — April 2026 &nbsp;·&nbsp; All markets: UK, US, India, UAE &nbsp;·&nbsp; All campaign types</p>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- SUMMARY STATS -->
+  <div class="summary-grid" style="margin-top:32px">
+    <div class="stat-card">
+      <div class="stat-label">Total spend</div>
+      <div class="stat-val">£21,252</div>
+      <div class="stat-sub">6-month cumulative</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total impressions</div>
+      <div class="stat-val">968k+</div>
+      <div class="stat-sub up">↑ Growing month on month</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total clicks</div>
+      <div class="stat-val">12,166</div>
+      <div class="stat-sub">Across all campaigns</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Brand CTR (peak)</div>
+      <div class="stat-val">28.6%</div>
+      <div class="stat-sub up">↑ US brand campaign Apr</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Markets active</div>
+      <div class="stat-val">4</div>
+      <div class="stat-sub">UK · US · India · UAE</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Campaign types</div>
+      <div class="stat-val">8+</div>
+      <div class="stat-sub">Brand, NB, Comp, PMax, YT</div>
+    </div>
+  </div>
+
+  <!-- SECTION 1: OVERALL TRENDS -->
+  <section class="block">
+    <div class="block-title">Overall Monthly Performance Trends</div>
+    <div class="block-sub">Total spend, impressions and clicks across all campaigns and markets — November 2025 to April 2026</div>
+
+    <div class="chart-grid-2">
+      <div class="chart-card">
+        <div class="chart-label">Total Monthly Spend (£)</div>
+        <div class="chart-wrap h280"><canvas id="spendTrend"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="legend-row">
+          <div class="leg"><span class="leg-dot" style="background:#185FA5"></span>Impressions</div>
+          <div class="leg"><span class="leg-dot" style="background:#C8922A"></span>Clicks</div>
+        </div>
+        <div class="chart-label">Monthly Impressions & Clicks</div>
+        <div class="chart-wrap h280"><canvas id="impClicks"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- SECTION 2: CAMPAIGN MIX -->
+  <section class="block">
+    <div class="block-title">Campaign Spend Mix — Month on Month</div>
+    <div class="block-sub">How budget was distributed across Brand, Competitor, Non-Brand, PMax/Display, and UAE campaigns each month</div>
+
+    <div class="chart-grid-2">
+      <div class="chart-card" style="grid-column:1/-1">
+        <div class="legend-row">
+          <div class="leg"><span class="leg-dot" style="background:#1B4D3E"></span>Brand</div>
+          <div class="leg"><span class="leg-dot" style="background:#C0392B"></span>Competitor</div>
+          <div class="leg"><span class="leg-dot" style="background:#185FA5"></span>Non-Brand Search</div>
+          <div class="leg"><span class="leg-dot" style="background:#534AB7"></span>PMax/Display/YT</div>
+          <div class="leg"><span class="leg-dot" style="background:#BA7517"></span>UAE</div>
+        </div>
+        <div class="chart-label">Campaign Spend Mix (£) — Stacked</div>
+        <div class="chart-wrap h280"><canvas id="campMix"></canvas></div>
+      </div>
+    </div>
+
+    <div class="chart-grid-3" style="margin-top:20px">
+      <div class="chart-card">
+        <div class="chart-label">Brand Campaign Spend Growth</div>
+        <div class="chart-wrap h200"><canvas id="brandGrowth"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-label">Competitor Campaign Spend</div>
+        <div class="chart-wrap h200"><canvas id="compSpend"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-label">Non-Brand Search Spend</div>
+        <div class="chart-wrap h200"><canvas id="nbSpend"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- SECTION 3: LOCATION -->
+  <section class="block">
+    <div class="block-title">Performance by Location</div>
+    <div class="block-sub">How UK, US, India and UAE markets have grown over the 6-month period — spend and clicks</div>
+
+    <div class="chart-grid-2">
+      <div class="chart-card">
+        <div class="legend-row">
+          <div class="leg"><span class="leg-dot" style="background:#1B4D3E"></span>UK</div>
+          <div class="leg"><span class="leg-dot" style="background:#185FA5"></span>US</div>
+          <div class="leg"><span class="leg-dot" style="background:#BA7517"></span>India</div>
+          <div class="leg"><span class="leg-dot" style="background:#0F6E56"></span>UAE</div>
+        </div>
+        <div class="chart-label">Spend by Location (£)</div>
+        <div class="chart-wrap h280"><canvas id="locSpend"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="legend-row">
+          <div class="leg"><span class="leg-dot" style="background:#1B4D3E"></span>UK</div>
+          <div class="leg"><span class="leg-dot" style="background:#185FA5"></span>US</div>
+          <div class="leg"><span class="leg-dot" style="background:#BA7517"></span>India</div>
+          <div class="leg"><span class="leg-dot" style="background:#0F6E56"></span>UAE</div>
+        </div>
+        <div class="chart-label">Clicks by Location</div>
+        <div class="chart-wrap h280"><canvas id="locClicks"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- SECTION 4: CPC TREND -->
+  <section class="block">
+    <div class="block-title">CPC Efficiency Trends</div>
+    <div class="block-sub">Average cost-per-click movement across campaign types — higher CPC isn't always bad if conversion quality improves</div>
+
+    <div class="chart-grid-2">
+      <div class="chart-card">
+        <div class="chart-label">Brand CPC vs Non-Brand CPC (£)</div>
+        <div class="chart-wrap h280"><canvas id="cpcComp"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-label">India Brand CPC vs UK Brand CPC (£) — efficiency story</div>
+        <div class="chart-wrap h280"><canvas id="cpcIndia"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- SECTION 5: DATA TABLE -->
+  <section class="block">
+    <div class="block-title">Monthly Summary Table</div>
+    <div class="block-sub">Full month-on-month breakdown with growth indicators</div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Month</th><th>Total Spend</th><th>Impressions</th><th>Clicks</th><th>Avg CTR</th><th>Avg CPC</th><th>Spend MoM</th><th>Clicks MoM</th>
+        </tr></thead>
+        <tbody>
+          <tr><td>Nov 2025</td><td>£899</td><td>15,986</td><td>739</td><td>4.6%</td><td>£1.22</td><td>—</td><td>—</td></tr>
+          <tr><td>Dec 2025</td><td>£1,497</td><td>11,280</td><td>753</td><td>6.7%</td><td>£1.99</td><td><span class="pill pill-a">+66.5%</span></td><td><span class="pill pill-g">+1.9%</span></td></tr>
+          <tr><td>Jan 2026</td><td>£2,799</td><td>58,167</td><td>1,186</td><td>2.0%</td><td>£2.36</td><td><span class="pill pill-a">+86.9%</span></td><td><span class="pill pill-g">+57.5%</span></td></tr>
+          <tr><td>Feb 2026</td><td>£5,548</td><td>357,502</td><td>4,424</td><td>1.2%</td><td>£1.25</td><td><span class="pill pill-a">+98.2%</span></td><td><span class="pill pill-g">+273%</span></td></tr>
+          <tr><td>Mar 2026</td><td>£6,827</td><td>320,137</td><td>3,533</td><td>1.1%</td><td>£1.93</td><td><span class="pill pill-a">+23.1%</span></td><td><span class="pill pill-r">−20.1%</span></td></tr>
+          <tr><td>Apr 2026*</td><td>£3,682</td><td>205,408</td><td>1,531</td><td>0.7%</td><td>£2.41</td><td><span class="pill pill-r">−46.1%</span></td><td><span class="pill pill-r">−56.7%</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:11px;color:var(--light);margin-top:8px">* April data is partial — up to Apr 29, 2026</p>
+  </section>
+
+  <!-- KEY INSIGHTS -->
+  <section class="block">
+    <div class="block-title">Key Narrative — What the Data Tells Us</div>
+    <div class="block-sub">Strategic interpretation of the 6-month Google Ads performance</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div style="background:white;border:1px solid var(--border);border-radius:12px;padding:20px 22px;border-left:4px solid var(--accent)">
+        <div style="font-size:12px;font-weight:500;color:var(--accent);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">📈 Scale achieved</div>
+        <p style="font-size:13px;color:var(--muted);line-height:1.6">Spend scaled 7.6× from Nov 2025 (£899) to Mar 2026 (£6,827) — showing strong commitment to growth. Brand impression share held strong at 24–28% CTR throughout, confirming growing brand awareness in target markets.</p>
+      </div>
+      <div style="background:white;border:1px solid var(--border);border-radius:12px;padding:20px 22px;border-left:4px solid var(--blue)">
+        <div style="font-size:12px;font-weight:500;color:var(--blue);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">🌍 Market expansion</div>
+        <p style="font-size:13px;color:var(--muted);line-height:1.6">Started with UK only. Scaled to US from Dec 2025 (£486), added UAE in Feb 2026 (£374), maintained India brand presence (£25→£181). 4 active markets within 4 months of launch.</p>
+      </div>
+      <div style="background:white;border:1px solid var(--border);border-radius:12px;padding:20px 22px;border-left:4px solid var(--gold)">
+        <div style="font-size:12px;font-weight:500;color:var(--gold);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">⚡ Feb impression spike</div>
+        <p style="font-size:13px;color:var(--muted);line-height:1.6">February 2026 impressions jumped to 357,502 — a 515% increase — driven by PMax launch (308k impressions) and Elise AI competitor campaign expansion. Demonstrates the platform's ability to scale reach rapidly when needed.</p>
+      </div>
+      <div style="background:white;border:1px solid var(--border);border-radius:12px;padding:20px 22px;border-left:4px solid var(--red)">
+        <div style="font-size:12px;font-weight:500;color:var(--red);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">🔧 Structural improvements in Apr</div>
+        <p style="font-size:13px;color:var(--muted);line-height:1.6">April reflects deliberate restructuring — UK/US brand split, keyword pruning, pausing zero-ROI campaigns. Lower spend and volume in April is strategic, not decline. Account is being rebuilt for efficiency heading into May.</p>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <div class="footer-logo">Verba<span>Flo</span></div>
+  <span>Google Ads Performance Report · Nov 2025 – Apr 2026</span>
+  <span>Confidential</span>
+</footer>
+
+<script>
+const months = ['Nov 25','Dec 25','Jan 26','Feb 26','Mar 26','Apr 26'];
+const gc = 'rgba(128,128,128,0.07)';
+const opts = (ylabel) => ({
+  responsive:true, maintainAspectRatio:false,
+  interaction:{mode:'index',intersect:false},
+  plugins:{legend:{display:false},tooltip:{backgroundColor:'#1A1C19',titleFont:{size:11},bodyFont:{size:11},padding:10,cornerRadius:6}},
+  scales:{
+    x:{ticks:{font:{size:10}},grid:{color:gc}},
+    y:{title:{display:true,text:ylabel,font:{size:10}},ticks:{font:{size:10}},grid:{color:gc}}
+  }
+});
+const opts2 = (y1, y2) => ({
+  responsive:true, maintainAspectRatio:false,
+  interaction:{mode:'index',intersect:false},
+  plugins:{legend:{display:false},tooltip:{backgroundColor:'#1A1C19',padding:10,cornerRadius:6,titleFont:{size:11},bodyFont:{size:11}}},
+  scales:{
+    x:{ticks:{font:{size:10}},grid:{color:gc}},
+    y:{position:'left',title:{display:true,text:y1,font:{size:10}},ticks:{font:{size:10}},grid:{color:gc}},
+    y2:{position:'right',title:{display:true,text:y2,font:{size:10}},ticks:{font:{size:10}},grid:{display:false}}
+  }
+});
+
+// 1. Spend trend
+new Chart(document.getElementById('spendTrend'),{type:'line',data:{labels:months,datasets:[{label:'Spend (£)',data:[899,1497,2799,5548,6827,3682],borderColor:'#1B4D3E',backgroundColor:'rgba(27,77,62,0.08)',borderWidth:2.5,fill:true,tension:0.4,pointRadius:5,pointHoverRadius:7}]},options:opts('Spend (£)')});
+
+// 2. Impressions + Clicks
+new Chart(document.getElementById('impClicks'),{type:'bar',data:{labels:months,datasets:[{label:'Impressions',data:[15986,11280,58167,357502,320137,205408],backgroundColor:'rgba(24,95,165,0.7)',yAxisID:'y'},{label:'Clicks',type:'line',data:[739,753,1186,4424,3533,1531],borderColor:'#C8922A',backgroundColor:'#C8922A',pointRadius:5,borderWidth:2,yAxisID:'y2'}]},options:opts2('Impressions','Clicks')});
+
+// 3. Campaign mix stacked
+new Chart(document.getElementById('campMix'),{type:'bar',data:{labels:months,datasets:[
+  {label:'Brand',data:[228,335,705,1033,1682,1395],backgroundColor:'rgba(27,77,62,0.85)'},
+  {label:'Competitor',data:[360,373,704,1377,1391,938],backgroundColor:'rgba(192,57,43,0.85)'},
+  {label:'Non-Brand Search',data:[475,790,1381,1458,1240,267],backgroundColor:'rgba(24,95,165,0.85)'},
+  {label:'PMax/Display/YT',data:[0,0,10,647,756,456],backgroundColor:'rgba(83,74,183,0.85)'},
+  {label:'UAE',data:[0,0,0,374,758,138],backgroundColor:'rgba(186,117,23,0.85)'},
+]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:'#1A1C19',padding:10,cornerRadius:6}},scales:{x:{stacked:true,ticks:{font:{size:10}},grid:{display:false}},y:{stacked:true,ticks:{font:{size:10}},grid:{color:gc}}}}});
+
+// 4a. Brand growth
+new Chart(document.getElementById('brandGrowth'),{type:'line',data:{labels:months,datasets:[{label:'Brand Spend',data:[228,335,705,1033,1682,1395],borderColor:'#1B4D3E',backgroundColor:'rgba(27,77,62,0.08)',borderWidth:2,fill:true,tension:0.4,pointRadius:4}]},options:opts('£')});
+
+// 4b. Competitor spend
+new Chart(document.getElementById('compSpend'),{type:'line',data:{labels:months,datasets:[{label:'Competitor Spend',data:[360,373,704,1377,1391,938],borderColor:'#C0392B',backgroundColor:'rgba(192,57,43,0.08)',borderWidth:2,fill:true,tension:0.4,pointRadius:4}]},options:opts('£')});
+
+// 4c. Non-brand
+new Chart(document.getElementById('nbSpend'),{type:'line',data:{labels:months,datasets:[{label:'NB Spend',data:[475,790,1381,1458,1240,267],borderColor:'#185FA5',backgroundColor:'rgba(24,95,165,0.08)',borderWidth:2,fill:true,tension:0.4,pointRadius:4}]},options:opts('£')});
+
+// 5. Location spend
+new Chart(document.getElementById('locSpend'),{type:'line',data:{labels:months,datasets:[
+  {label:'UK',data:[683,677,939,2031,2161,1416],borderColor:'#1B4D3E',backgroundColor:'transparent',borderWidth:2,tension:0.4,pointRadius:4},
+  {label:'US',data:[120,486,1283,1964,2013,1424],borderColor:'#185FA5',backgroundColor:'transparent',borderWidth:2,tension:0.4,pointRadius:4},
+  {label:'India',data:[25,74,160,179,182,107],borderColor:'#BA7517',backgroundColor:'transparent',borderWidth:2,tension:0.4,pointRadius:4,borderDash:[4,3]},
+  {label:'UAE',data:[30,0,0,374,932,284],borderColor:'#0F6E56',backgroundColor:'transparent',borderWidth:2,tension:0.4,pointRadius:4,borderDash:[4,3]},
+]},options:opts('Spend (£)')});
+
+// 6. Location clicks
+new Chart(document.getElementById('locClicks'),{type:'bar',data:{labels:months,datasets:[
+  {label:'UK',data:[438,344,411,2928,2005,618],backgroundColor:'rgba(27,77,62,0.8)'},
+  {label:'US',data:[53,115,368,574,526,331],backgroundColor:'rgba(24,95,165,0.8)'},
+  {label:'India',data:[56,141,241,211,262,136],backgroundColor:'rgba(186,117,23,0.8)'},
+  {label:'UAE',data:[28,0,0,189,328,77],backgroundColor:'rgba(15,110,86,0.8)'},
+]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#1A1C19',padding:10,cornerRadius:6}},scales:{x:{stacked:false,ticks:{font:{size:10}},grid:{display:false}},y:{ticks:{font:{size:10}},grid:{color:gc}}}}});
+
+// 7. CPC comparison Brand vs NB
+new Chart(document.getElementById('cpcComp'),{type:'line',data:{labels:months,datasets:[
+  {label:'Brand CPC',data:[0.98,1.16,1.62,2.36,2.63,3.04],borderColor:'#1B4D3E',borderWidth:2,tension:0.4,pointRadius:4,backgroundColor:'transparent'},
+  {label:'Non-Brand CPC',data:[1.77,2.63,2.51,2.59,2.92,3.99],borderColor:'#185FA5',borderWidth:2,tension:0.4,pointRadius:4,backgroundColor:'transparent',borderDash:[5,3]},
+]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:'#1A1C19',padding:10,cornerRadius:6}},scales:{x:{ticks:{font:{size:10}},grid:{color:gc}},y:{title:{display:true,text:'CPC (£)',font:{size:10}},ticks:{font:{size:10},callback:v=>'£'+v},grid:{color:gc}}}}});
+
+// 8. India CPC efficiency
+new Chart(document.getElementById('cpcIndia'),{type:'line',data:{labels:months,datasets:[
+  {label:'UK Brand CPC',data:[1.15,1.76,2.79,3.76,3.99,3.87],borderColor:'#1B4D3E',borderWidth:2,tension:0.4,pointRadius:4,backgroundColor:'transparent'},
+  {label:'India Brand CPC',data:[0.45,0.53,0.66,0.85,0.69,0.79],borderColor:'#BA7517',borderWidth:2,tension:0.4,pointRadius:4,backgroundColor:'transparent',borderDash:[5,3]},
+]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:'#1A1C19',padding:10,cornerRadius:6}},scales:{x:{ticks:{font:{size:10}},grid:{color:gc}},y:{title:{display:true,text:'CPC (£)',font:{size:10}},ticks:{font:{size:10},callback:v=>'£'+v},grid:{color:gc}}}}});
+</script>
+</body>
+</html>
