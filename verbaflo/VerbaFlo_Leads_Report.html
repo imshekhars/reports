@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VerbaFlo — Leads Performance Report | Jan–Apr 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0D1117; --white:#FFFFFF; --paper:#F7F5F0; --paper-dark:#EDE9E2;
+  --accent:#1B4D3E; --gold:#C8922A;
+  --blue:#1A56A0; --teal:#0F7B6C; --purple:#534AB7;
+  --amber:#BA7517; --red:#C0392B;
+  --meta:#1877F2; --google:#1A56A0; --organic:#0F7B6C;
+  --direct:#534AB7; --linkedin:#0A66C2;
+  --muted:#64748B; --border:rgba(0,0,0,0.07); --light:#F1F5F9;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);line-height:1.6}
+
+/* ── HEADER ─────────────────────────────────────────── */
+header{background:var(--ink);padding:52px 56px 48px;position:relative;overflow:hidden}
+header::before{content:'';position:absolute;right:-120px;top:-120px;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(200,146,42,0.07),transparent 70%)}
+header::after{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:linear-gradient(180deg,var(--gold),var(--accent))}
+.header-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr auto;gap:40px;align-items:center}
+.header-eyebrow{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:10px}
+header h1{font-family:'Cormorant Garamond',serif;font-size:46px;font-weight:700;color:var(--white);letter-spacing:-1.5px;line-height:1.05;margin-bottom:8px}
+header h1 span{color:var(--gold)}
+.header-period{font-size:14px;color:rgba(255,255,255,0.4);font-weight:300}
+.header-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:2px}
+.hstat{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);padding:20px 24px}
+.hstat .num{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:700;color:var(--gold);line-height:1;letter-spacing:-1px}
+.hstat .lbl{font-size:10px;color:rgba(255,255,255,0.35);margin-top:3px;text-transform:uppercase;letter-spacing:.07em}
+
+/* ── MAIN ───────────────────────────────────────────── */
+.container{max-width:1200px;margin:0 auto;padding:52px 56px}
+
+/* ── SECTION HEADER ─────────────────────────────────── */
+.sec-eyebrow{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;font-weight:500}
+.sec-title{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;color:var(--ink);letter-spacing:-.5px;margin-bottom:4px}
+.sec-sub{font-size:13px;color:var(--muted);font-weight:300;margin-bottom:32px}
+
+/* ── STAT CARDS ─────────────────────────────────────── */
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:40px}
+.stat-card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:20px 22px;position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s}
+.stat-card:hover{transform:translateY(-2px);box-shadow:0 4px 20px rgba(0,0,0,0.08)}
+.stat-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+.stat-card.c-accent::before{background:var(--accent)}
+.stat-card.c-gold::before{background:var(--gold)}
+.stat-card.c-blue::before{background:var(--blue)}
+.stat-card.c-teal::before{background:var(--teal)}
+.stat-card.c-purple::before{background:var(--purple)}
+.stat-card.c-red::before{background:var(--red)}
+.stat-card .val{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:700;color:var(--ink);line-height:1;margin-bottom:4px;letter-spacing:-.5px}
+.stat-card .lbl{font-size:11px;font-weight:500;color:var(--ink)}
+.stat-card .sub{font-size:10px;color:var(--muted);margin-top:2px}
+
+/* ── CHARTS ─────────────────────────────────────────── */
+.chart-grid{display:grid;gap:20px;margin-bottom:40px}
+.chart-grid.g2{grid-template-columns:1fr 1fr}
+.chart-grid.g3{grid-template-columns:1fr 1fr 1fr}
+.chart-grid.g1{grid-template-columns:1fr}
+.chart-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:26px}
+.chart-lbl{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:16px}
+.chart-wrap{position:relative;width:100%}
+.h300{height:300px}.h240{height:240px}.h200{height:200px}.h180{height:180px}
+.leg-row{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:10px}
+.leg{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)}
+.ld{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+
+/* ── FUNNEL CARDS ───────────────────────────────────── */
+.funnel-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-bottom:40px;border-radius:12px;overflow:hidden;border:1px solid var(--border)}
+.funnel-step{background:var(--white);padding:24px 20px;text-align:center;position:relative}
+.funnel-step:not(:last-child){border-right:1px solid var(--border)}
+.funnel-step:not(:last-child)::after{content:'→';position:absolute;right:-14px;top:50%;transform:translateY(-50%);font-size:18px;color:var(--muted);z-index:1}
+.funnel-step .f-num{font-family:'Cormorant Garamond',serif;font-size:42px;font-weight:700;line-height:1;margin-bottom:4px}
+.funnel-step .f-lbl{font-size:11px;font-weight:500;color:var(--ink);margin-bottom:2px}
+.funnel-step .f-pct{font-size:12px;color:var(--muted)}
+.funnel-step .f-bar{height:4px;border-radius:2px;margin-top:12px}
+
+/* ── DATA TABLE ─────────────────────────────────────── */
+.table-wrap{background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:40px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead{background:var(--ink)}
+thead th{padding:11px 16px;color:rgba(255,255,255,0.65);font-size:10px;font-weight:500;text-align:left;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+.month-total-row td{background:var(--ink);color:rgba(255,255,255,0.9)!important;font-weight:500}
+.month-total-row td .pill{background:rgba(255,255,255,0.1)!important;color:rgba(255,255,255,0.8)!important}
+.grand-total-row td{background:var(--accent);color:var(--white)!important;font-weight:600}
+.grand-total-row td .pill{background:rgba(255,255,255,0.15)!important;color:var(--white)!important}
+tbody tr{border-bottom:1px solid var(--border)}
+tbody tr:hover:not(.month-total-row):not(.grand-total-row){background:var(--light)}
+tbody td{padding:10px 16px;color:var(--ink);vertical-align:middle}
+.source-tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:400}
+.src-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.pill{display:inline-block;padding:2px 9px;border-radius:4px;font-size:10px;font-weight:500}
+.pill-g{background:#E8F5E9;color:#2E7D32}
+.pill-a{background:#FFF8E1;color:#F57F17}
+.pill-b{background:#E3F2FD;color:#1565C0}
+.pill-r{background:#FFEBEE;color:#C62828}
+.conv-bar-wrap{display:flex;align-items:center;gap:8px}
+.conv-bar-bg{flex:1;height:5px;background:var(--light);border-radius:3px;overflow:hidden;min-width:60px}
+.conv-bar-fill{height:100%;border-radius:3px}
+.spacer-row td{padding:4px!important;background:var(--paper)!important;border:none!important}
+
+/* ── MONTH SECTIONS ─────────────────────────────────── */
+.month-divider{display:flex;align-items:center;gap:16px;margin:40px 0 20px}
+.month-divider .month-name{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--ink)}
+.month-divider line{flex:1;height:1px;background:var(--border)}
+.month-divider-line{flex:1;height:1px;background:var(--border)}
+.month-badge{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:500}
+
+/* ── INSIGHT CARDS ──────────────────────────────────── */
+.insight-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:40px}
+.insight-card{border-radius:10px;padding:20px 22px 20px 26px;border:1px solid;position:relative}
+.insight-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:10px 0 0 10px}
+.insight-card .i-text{font-size:13px;color:var(--ink);line-height:1.65;font-weight:300}
+.ic-green{background:#E8F2F0;border-color:#B5D5CD}.ic-green::before{background:var(--accent)}
+.ic-blue{background:#E8EFF8;border-color:#9BBCE5}.ic-blue::before{background:var(--blue)}
+.ic-gold{background:#FBF3E4;border-color:#EED39B}.ic-gold::before{background:var(--gold)}
+.ic-red{background:#FCECEA;border-color:#F0B8B4}.ic-red::before{background:var(--red)}
+
+/* ── FOOTER ─────────────────────────────────────────── */
+footer{background:var(--ink);padding:28px 56px;display:flex;justify-content:space-between;align-items:center}
+footer .logo{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:18px;color:var(--white)}
+footer .logo span{color:var(--gold)}
+footer p{font-size:11px;color:rgba(255,255,255,0.25)}
+
+@media(max-width:900px){
+  header{padding:36px 24px}
+  .header-inner{grid-template-columns:1fr}
+  .container{padding:36px 24px}
+  .stat-row,.funnel-grid{grid-template-columns:1fr 1fr}
+  .chart-grid.g2,.chart-grid.g3{grid-template-columns:1fr}
+  .insight-grid{grid-template-columns:1fr}
+  .funnel-step:not(:last-child){border-right:none;border-bottom:1px solid var(--border)}
+  .funnel-step:not(:last-child)::after{content:'↓';right:50%;top:unset;bottom:-14px;transform:translateX(50%)}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <div>
+      <div class="header-eyebrow">Lead Pipeline Report</div>
+      <h1>Verba<span>Flo</span> — Leads</h1>
+      <div class="header-period">January 2026 — April 2026 &nbsp;·&nbsp; All channels &nbsp;·&nbsp; Full funnel view</div>
+    </div>
+    <div class="header-stats">
+      <div class="hstat"><div class="num">146</div><div class="lbl">Total leads</div></div>
+      <div class="hstat"><div class="num">73</div><div class="lbl">ICP leads</div></div>
+      <div class="hstat"><div class="num">32</div><div class="lbl">Demos booked</div></div>
+      <div class="hstat"><div class="num">20</div><div class="lbl">Demos done</div></div>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- FUNNEL -->
+  <div class="sec-eyebrow" style="margin-bottom:8px">Full Funnel</div>
+  <div class="sec-title">Lead-to-Demo Conversion Pipeline</div>
+  <div class="sec-sub">Jan – Apr 2026 · All sources combined</div>
+
+  <div class="funnel-grid">
+    <div class="funnel-step">
+      <div class="f-num" style="color:var(--blue)">146</div>
+      <div class="f-lbl">Total leads</div>
+      <div class="f-pct">100% baseline</div>
+      <div class="f-bar" style="background:var(--blue)"></div>
+    </div>
+    <div class="funnel-step">
+      <div class="f-num" style="color:var(--accent)">73</div>
+      <div class="f-lbl">ICP qualified</div>
+      <div class="f-pct">50% of total</div>
+      <div class="f-bar" style="background:var(--accent)"></div>
+    </div>
+    <div class="funnel-step">
+      <div class="f-num" style="color:var(--gold)">32</div>
+      <div class="f-lbl">Demo booked</div>
+      <div class="f-pct">22% of total · 44% of ICP</div>
+      <div class="f-bar" style="background:var(--gold)"></div>
+    </div>
+    <div class="funnel-step">
+      <div class="f-num" style="color:var(--teal)">20</div>
+      <div class="f-lbl">Demo done</div>
+      <div class="f-pct">14% of total · 63% show rate</div>
+      <div class="f-bar" style="background:var(--teal)"></div>
+    </div>
+  </div>
+
+  <!-- SUMMARY STATS -->
+  <div class="stat-row">
+    <div class="stat-card c-blue"><div class="val">65</div><div class="lbl">Peak month leads</div><div class="sub">April — highest volume</div></div>
+    <div class="stat-card c-accent"><div class="val">100%</div><div class="lbl">Best ICP rate</div><div class="sub">March — all 23 leads ICP</div></div>
+    <div class="stat-card c-gold"><div class="val">42%</div><div class="lbl">Best demo rate</div><div class="sub">Jan — 8 of 19 leads booked</div></div>
+    <div class="stat-card c-teal"><div class="val">80%</div><div class="lbl">Best show rate</div><div class="sub">Feb — 10 of 16 done vs booked</div></div>
+  </div>
+
+  <!-- CHARTS ROW 1 -->
+  <div class="chart-grid g2">
+    <div class="chart-card">
+      <div class="leg-row">
+        <div class="leg"><span class="ld" style="background:var(--blue)"></span>Total Leads</div>
+        <div class="leg"><span class="ld" style="background:var(--accent)"></span>ICP</div>
+        <div class="leg"><span class="ld" style="background:var(--gold)"></span>Demo Booked</div>
+        <div class="leg"><span class="ld" style="background:var(--teal)"></span>Demo Done</div>
+      </div>
+      <div class="chart-lbl">Monthly funnel — Leads, ICP, Demos Booked & Done</div>
+      <div class="chart-wrap h300"><canvas id="funnelBar"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="leg-row">
+        <div class="leg"><span class="ld" style="background:var(--gold)"></span>Demo Booked %</div>
+        <div class="leg"><span class="ld" style="background:var(--teal)"></span>Demo Done %</div>
+        <div class="leg"><span class="ld" style="background:var(--accent)"></span>ICP Rate %</div>
+      </div>
+      <div class="chart-lbl">Conversion rate trends — month on month</div>
+      <div class="chart-wrap h300"><canvas id="convLine"></canvas></div>
+    </div>
+  </div>
+
+  <!-- CHARTS ROW 2 -->
+  <div class="chart-grid g3">
+    <div class="chart-card">
+      <div class="chart-lbl">Source mix — total leads by channel</div>
+      <div class="chart-wrap h240"><canvas id="sourcePie"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="leg-row">
+        <div class="leg"><span class="ld" style="background:var(--meta)"></span>Meta Ads</div>
+        <div class="leg"><span class="ld" style="background:var(--google)"></span>Google Ads</div>
+        <div class="leg"><span class="ld" style="background:var(--organic)"></span>Organic</div>
+        <div class="leg"><span class="ld" style="background:var(--direct)"></span>Direct</div>
+        <div class="leg"><span class="ld" style="background:var(--linkedin)"></span>LinkedIn</div>
+      </div>
+      <div class="chart-lbl">Leads by source — month on month stacked</div>
+      <div class="chart-wrap h240"><canvas id="sourceStack"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-lbl">ICP qualified leads by source — all months</div>
+      <div class="chart-wrap h240"><canvas id="icpBar"></canvas></div>
+    </div>
+  </div>
+
+  <!-- SOURCE PERFORMANCE -->
+  <div class="chart-grid g2">
+    <div class="chart-card">
+      <div class="chart-lbl">Demo booked rate by source (%)</div>
+      <div class="chart-wrap h200"><canvas id="demoBySource"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="leg-row">
+        <div class="leg"><span class="ld" style="background:var(--blue)"></span>Total leads</div>
+        <div class="leg"><span class="ld" style="background:var(--gold);height:3px;width:14px;border-radius:2px"></span>Demos done</div>
+      </div>
+      <div class="chart-lbl">Total leads vs demos done — monthly</div>
+      <div class="chart-wrap h200"><canvas id="leadsDone"></canvas></div>
+    </div>
+  </div>
+
+  <!-- KEY INSIGHTS -->
+  <div class="sec-eyebrow" style="margin-top:8px">Analysis</div>
+  <div class="sec-title">Key Observations</div>
+  <div class="sec-sub" style="margin-bottom:20px">Trends and findings from the Jan–Apr lead pipeline</div>
+  <div class="insight-grid">
+    <div class="insight-card ic-green">
+      <div class="i-text"><strong>March had a 100% ICP rate</strong> — all 23 leads that month were ICP qualified, predominantly from UK Meta campaigns targeting BTR and PBSA operators. This is the highest quality lead month despite not being the highest volume month.</div>
+    </div>
+    <div class="insight-card ic-blue">
+      <div class="i-text"><strong>Google Ads delivered the strongest demo conversion</strong> — 16 Google Ads leads resulted in 11 demos booked (69% booking rate) and 7 demos done across all months, making it the most efficient channel for bottom-of-funnel conversion.</div>
+    </div>
+    <div class="insight-card ic-gold">
+      <div class="i-text"><strong>Organic Search is the highest quality channel</strong> — 10 organic leads generated 8 demo bookings (80% booking rate) and 5 demos completed. Every organic lead was ICP or near-ICP, confirming SEO traffic has the strongest intent in the funnel.</div>
+    </div>
+    <div class="insight-card ic-red">
+      <div class="i-text"><strong>April's low demo rate reflects volume scaling</strong> — 65 leads in April but only 1 demo done. The majority are from broad Meta audiences still being qualified. 13 are marked "Yet to check" — once processed, the April conversion picture will improve.</div>
+    </div>
+  </div>
+
+  <!-- FULL DATA TABLE -->
+  <div class="sec-eyebrow">Detailed breakdown</div>
+  <div class="sec-title">Month × Source Full Table</div>
+  <div class="sec-sub" style="margin-bottom:20px">All leads, ICP status, demo booked and demo done — grouped by month and source</div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Month</th>
+          <th>Source</th>
+          <th>Total Leads</th>
+          <th>ICP</th>
+          <th>ICP Rate</th>
+          <th>Demo Booked</th>
+          <th>Booking Rate</th>
+          <th>Demo Done</th>
+          <th>Show Rate</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<footer>
+  <div class="logo">Verba<span>Flo</span></div>
+  <p>Lead Pipeline Report · Jan–Apr 2026</p>
+  <p>Confidential · Internal</p>
+</footer>
+
+<script>
+const gc='rgba(128,128,128,0.07)';
+const months=['Jan 26','Feb 26','Mar 26','Apr 26'];
+
+const baseOpts=(ylabel)=>({
+  responsive:true,maintainAspectRatio:false,
+  interaction:{mode:'index',intersect:false},
+  plugins:{legend:{display:false},tooltip:{backgroundColor:'#0D1117',titleFont:{size:11,family:"'DM Sans',sans-serif"},bodyFont:{size:11,family:"'DM Sans',sans-serif"},padding:12,cornerRadius:8,borderColor:'rgba(255,255,255,0.08)',borderWidth:1}},
+  scales:{x:{ticks:{font:{size:10,family:"'DM Sans',sans-serif"},color:'#64748B'},grid:{color:gc}},y:{title:{display:!!ylabel,text:ylabel||'',font:{size:9},color:'#64748B'},ticks:{font:{size:10,family:"'DM Sans',sans-serif"},color:'#64748B'},grid:{color:gc}}}
+});
+
+// Raw data
+const raw = {
+  Jan:{ 'Direct traffic':[3,2,3,2], 'Google Ads':[4,4,3,3], 'LinkedIn Ads':[3,0,0,0], 'Meta Ads':[8,3,1,1], 'Organic search':[1,0,1,0] },
+  Feb:{ 'Direct traffic':[3,2,3,1], 'Google Ads':[7,4,6,3], 'LinkedIn Ads':[1,0,0,0], 'Meta Ads':[23,8,2,2], 'Organic search':[5,4,5,4] },
+  Mar:{ 'Google Ads':[5,5,1,1], 'Meta Ads':[18,18,3,2] },
+  Apr:{ 'Direct traffic':[4,1,0,0], 'Google Ads':[5,2,1,0], 'Meta Ads':[52,16,1,0], 'Organic search':[4,4,2,1] },
+};
+const monthTotals={
+  Jan:[19,9,8,6], Feb:[39,18,16,10], Mar:[23,23,4,3], Apr:[65,23,4,1]
+};
+const grand=[146,73,32,20];
+
+// ── CHART 1: Funnel bar ─────────────────────────────
+new Chart(document.getElementById('funnelBar'),{type:'bar',data:{labels:months,datasets:[
+  {label:'Total Leads',data:[19,39,23,65],backgroundColor:'rgba(26,86,160,0.7)',borderRadius:3},
+  {label:'ICP',data:[9,18,23,23],backgroundColor:'rgba(27,77,62,0.8)',borderRadius:3},
+  {label:'Demo Booked',data:[8,16,4,4],backgroundColor:'rgba(200,146,42,0.8)',borderRadius:3},
+  {label:'Demo Done',data:[6,10,3,1],backgroundColor:'rgba(15,123,108,0.8)',borderRadius:3},
+]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:'#0D1117',padding:12,cornerRadius:8}},scales:{x:{ticks:{font:{size:10},color:'#64748B'},grid:{display:false}},y:{ticks:{font:{size:10},color:'#64748B'},grid:{color:gc}}}}});
+
+// ── CHART 2: Conversion rate lines ─────────────────
+new Chart(document.getElementById('convLine'),{type:'line',data:{labels:months,datasets:[
+  {label:'ICP Rate %',data:[47,46,100,35],borderColor:'#1B4D3E',backgroundColor:'rgba(27,77,62,0.06)',borderWidth:2.5,fill:true,tension:.4,pointRadius:5,pointHoverRadius:7},
+  {label:'Demo Booked %',data:[42,41,17,6],borderColor:'#C8922A',backgroundColor:'transparent',borderWidth:2,tension:.4,pointRadius:5,borderDash:[0]},
+  {label:'Demo Done %',data:[32,26,13,1.5],borderColor:'#0F7B6C',backgroundColor:'transparent',borderWidth:2,tension:.4,pointRadius:5,borderDash:[5,3]},
+]},options:{...baseOpts('Rate %'),plugins:{...baseOpts().plugins,legend:{display:true,labels:{font:{size:10,family:"'DM Sans',sans-serif"},color:'#64748B',boxWidth:12}},tooltip:{backgroundColor:'#0D1117',padding:12,cornerRadius:8,callbacks:{label:c=>`${c.dataset.label}: ${c.parsed.y}%`}}}}});
+
+// ── CHART 3: Source pie ──────────────────────────────
+new Chart(document.getElementById('sourcePie'),{type:'doughnut',data:{
+  labels:['Meta Ads','Google Ads','Direct','Organic','LinkedIn'],
+  datasets:[{data:[104,21,10,10,4],backgroundColor:['rgba(24,119,242,0.85)','rgba(26,86,160,0.85)','rgba(83,74,183,0.85)','rgba(15,123,108,0.85)','rgba(10,102,194,0.85)'],borderWidth:2,borderColor:'#F7F5F0',hoverOffset:6}]
+},options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{position:'bottom',labels:{font:{size:11,family:"'DM Sans',sans-serif"},color:'#64748B',padding:12,boxWidth:10}},tooltip:{backgroundColor:'#0D1117',padding:12,cornerRadius:8,callbacks:{label:c=>`${c.label}: ${c.parsed} leads (${Math.round(c.parsed/146*100)}%)`}}}}});
+
+// ── CHART 4: Source stacked bar ──────────────────────
+new Chart(document.getElementById('sourceStack'),{type:'bar',data:{labels:months,datasets:[
+  {label:'Meta Ads',data:[8,23,18,52],backgroundColor:'rgba(24,119,242,0.8)'},
+  {label:'Google Ads',data:[4,7,5,5],backgroundColor:'rgba(26,86,160,0.8)'},
+  {label:'Organic',data:[1,5,0,4],backgroundColor:'rgba(15,123,108,0.8)'},
+  {label:'Direct',data:[3,3,0,4],backgroundColor:'rgba(83,74,183,0.8)'},
+  {label:'LinkedIn',data:[3,1,0,0],backgroundColor:'rgba(10,102,194,0.65)'},
+]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:'#0D1117',padding:10,cornerRadius:8}},scales:{x:{stacked:true,ticks:{font:{size:10},color:'#64748B'},grid:{display:false}},y:{stacked:true,ticks:{font:{size:10},color:'#64748B'},grid:{color:gc}}}}});
+
+// ── CHART 5: ICP by source ───────────────────────────
+new Chart(document.getElementById('icpBar'),{type:'bar',data:{
+  labels:['Meta Ads','Google Ads','Organic','Direct','LinkedIn'],
+  datasets:[{label:'ICP Leads',data:[45,15,8,5,0],backgroundColor:['rgba(24,119,242,0.75)','rgba(26,86,160,0.75)','rgba(15,123,108,0.75)','rgba(83,74,183,0.75)','rgba(10,102,194,0.65)'],borderRadius:4}]
+},options:{...baseOpts('ICP Leads'),plugins:{...baseOpts().plugins,tooltip:{backgroundColor:'#0D1117',padding:10,cornerRadius:8,callbacks:{label:c=>`ICP leads: ${c.parsed.y}`}}}}});
+
+// ── CHART 6: Demo booked rate by source ─────────────
+new Chart(document.getElementById('demoBySource'),{type:'bar',data:{
+  labels:['Organic','Google Ads','Direct','Meta Ads','LinkedIn'],
+  datasets:[{label:'Demo Booking Rate %',data:[80,69,60,7,0],backgroundColor:['rgba(15,123,108,0.8)','rgba(26,86,160,0.8)','rgba(83,74,183,0.8)','rgba(24,119,242,0.8)','rgba(10,102,194,0.65)'],borderRadius:4}]
+},options:{...baseOpts('Rate %'),plugins:{...baseOpts().plugins,tooltip:{backgroundColor:'#0D1117',padding:10,cornerRadius:8,callbacks:{label:c=>`Booking rate: ${c.parsed.y}%`}}}}});
+
+// ── CHART 7: Leads vs demos done ──────────────────────
+new Chart(document.getElementById('leadsDone'),{type:'bar',data:{labels:months,datasets:[
+  {label:'Total Leads',data:[19,39,23,65],backgroundColor:'rgba(26,86,160,0.6)',borderRadius:3,yAxisID:'y'},
+  {label:'Demos Done',type:'line',data:[6,10,3,1],borderColor:'#C8922A',backgroundColor:'transparent',pointRadius:5,borderWidth:2.5,yAxisID:'y2',tension:.4}
+]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:'#0D1117',padding:12,cornerRadius:8}},scales:{x:{ticks:{font:{size:10},color:'#64748B'},grid:{color:gc}},y:{position:'left',ticks:{font:{size:10},color:'#64748B'},grid:{color:gc}},y2:{position:'right',ticks:{font:{size:10},color:'#64748B'},grid:{display:false}}}}});
+
+// ── TABLE BUILDER ─────────────────────────────────────
+const sourceColors={
+  'Meta Ads':'#1877F2','Google Ads':'#1A56A0',
+  'Organic search':'#0F7B6C','Direct traffic':'#534AB7',
+  'LinkedIn Ads':'#0A66C2'
+};
+
+const tableData=[
+  {month:'January',rows:[
+    {src:'Direct traffic',total:3,icp:2,db:3,dd:2},
+    {src:'Google Ads',total:4,icp:4,db:3,dd:3},
+    {src:'LinkedIn Ads',total:3,icp:0,db:0,dd:0},
+    {src:'Meta Ads',total:8,icp:3,db:1,dd:1},
+    {src:'Organic search',total:1,icp:0,db:1,dd:0},
+  ],total:[19,9,8,6]},
+  {month:'February',rows:[
+    {src:'Direct traffic',total:3,icp:2,db:3,dd:1},
+    {src:'Google Ads',total:7,icp:4,db:6,dd:3},
+    {src:'LinkedIn Ads',total:1,icp:0,db:0,dd:0},
+    {src:'Meta Ads',total:23,icp:8,db:2,dd:2},
+    {src:'Organic search',total:5,icp:4,db:5,dd:4},
+  ],total:[39,18,16,10]},
+  {month:'March',rows:[
+    {src:'Google Ads',total:5,icp:5,db:1,dd:1},
+    {src:'Meta Ads',total:18,icp:18,db:3,dd:2},
+  ],total:[23,23,4,3]},
+  {month:'April',rows:[
+    {src:'Direct traffic',total:4,icp:1,db:0,dd:0},
+    {src:'Google Ads',total:5,icp:2,db:1,dd:0},
+    {src:'Meta Ads',total:52,icp:16,db:1,dd:0},
+    {src:'Organic search',total:4,icp:4,db:2,dd:1},
+  ],total:[65,23,4,1]},
+];
+
+function pct(n,d){return d>0?Math.round(n/d*100):0}
+function bar(val,color){return `<div class="conv-bar-wrap"><div class="conv-bar-bg"><div class="conv-bar-fill" style="width:${val}%;background:${color}"></div></div><span style="font-size:11px;color:#64748B;min-width:32px;text-align:right">${val}%</span></div>`}
+function pillColor(val){if(val>=60)return 'pill-g';if(val>=30)return 'pill-a';if(val>0)return 'pill-b';return 'pill-r'}
+
+let html='';
+tableData.forEach((m,mi)=>{
+  m.rows.forEach((r,ri)=>{
+    const icpPct=pct(r.icp,r.total);
+    const dbPct=pct(r.db,r.total);
+    const ddPct=pct(r.dd,r.db);
+    html+=`<tr>
+      <td style="font-weight:${ri===0?'500':'300'};color:${ri===0?'var(--ink)':'var(--muted)'}">${ri===0?m.month:''}</td>
+      <td><div class="source-tag"><span class="src-dot" style="background:${sourceColors[r.src]||'#888'}"></span>${r.src}</div></td>
+      <td style="font-weight:500">${r.total}</td>
+      <td>${r.icp}</td>
+      <td>${bar(icpPct,'#1B4D3E')}</td>
+      <td>${r.db}</td>
+      <td>${bar(dbPct,'#C8922A')}</td>
+      <td>${r.dd}</td>
+      <td>${r.db>0?bar(ddPct,'#0F7B6C'):'<span style="color:var(--muted);font-size:11px">—</span>'}</td>
+    </tr>`;
+  });
+  const t=m.total;
+  const ticpPct=pct(t[1],t[0]);
+  const tdbPct=pct(t[2],t[0]);
+  const tddPct=pct(t[3],t[2]);
+  html+=`<tr class="month-total-row">
+    <td colspan="2" style="font-weight:500;letter-spacing:.04em">${m.month.toUpperCase()} TOTAL</td>
+    <td style="font-weight:600">${t[0]}</td>
+    <td>${t[1]}</td>
+    <td><span class="pill ${pillColor(ticpPct)}">${ticpPct}%</span></td>
+    <td>${t[2]}</td>
+    <td><span class="pill ${pillColor(tdbPct)}">${tdbPct}%</span></td>
+    <td>${t[3]}</td>
+    <td><span class="pill ${pillColor(tddPct)}">${tddPct}%</span></td>
+  </tr>`;
+  if(mi<tableData.length-1) html+=`<tr class="spacer-row"><td colspan="9"></td></tr>`;
+});
+
+// Grand total
+html+=`<tr class="spacer-row"><td colspan="9"></td></tr>
+<tr class="grand-total-row">
+  <td colspan="2" style="font-weight:600;letter-spacing:.06em;font-size:11px">GRAND TOTAL</td>
+  <td style="font-weight:700;font-size:15px">146</td>
+  <td style="font-weight:600">73</td>
+  <td><span class="pill" style="background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.9)">50%</span></td>
+  <td style="font-weight:600">32</td>
+  <td><span class="pill" style="background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.9)">22%</span></td>
+  <td style="font-weight:600">20</td>
+  <td><span class="pill" style="background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.9)">63%</span></td>
+</tr>`;
+
+document.getElementById('tableBody').innerHTML=html;
+</script>
+</body>
+</html>
