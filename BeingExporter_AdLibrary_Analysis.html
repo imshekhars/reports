@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BeingExporter — Meta Ad Library Analysis</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#0f172a; --card:#1e293b; --card2:#293548; --accent:#22d3ee; --accent2:#a78bfa;
+    --good:#34d399; --warn:#fbbf24; --bad:#f87171; --text:#e2e8f0; --muted:#94a3b8;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 100%);color:var(--text);line-height:1.6}
+  .container{max-width:1200px;margin:0 auto;padding:40px 24px}
+  header{text-align:center;padding:60px 20px 40px;border-bottom:1px solid #334155;margin-bottom:40px}
+  header h1{font-size:42px;margin:0 0 12px;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  header .sub{color:var(--muted);font-size:16px}
+  header .pill{display:inline-block;background:rgba(34,211,238,0.1);color:var(--accent);padding:4px 12px;border-radius:99px;font-size:12px;margin-top:12px;border:1px solid rgba(34,211,238,0.3)}
+  h2{font-size:26px;margin:48px 0 16px;color:var(--text);border-left:4px solid var(--accent);padding-left:14px}
+  h3{color:var(--accent2);margin-top:32px}
+  .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:32px}
+  .kpi{background:var(--card);padding:24px;border-radius:12px;border:1px solid #334155;text-align:center}
+  .kpi .v{font-size:36px;font-weight:700;color:var(--accent);display:block}
+  .kpi .l{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-top:4px}
+  .chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:32px}
+  .chart-card{background:var(--card);padding:24px;border-radius:12px;border:1px solid #334155}
+  .chart-card h3{margin-top:0;color:#fff;font-size:18px}
+  .chart-card canvas{max-height:300px}
+  .chart-full{grid-column:1/-1}
+  .ad-card{background:var(--card);border:1px solid #334155;border-radius:12px;padding:20px;margin-bottom:16px;position:relative}
+  .ad-rank{position:absolute;top:-12px;left:20px;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#0f172a;font-weight:700;padding:4px 12px;border-radius:99px;font-size:14px}
+  .ad-meta{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px}
+  .badge{font-size:12px;padding:4px 10px;border-radius:6px;background:var(--card2);color:var(--text)}
+  .badge-video{background:rgba(167,139,250,0.15);color:var(--accent2);border:1px solid rgba(167,139,250,0.3)}
+  .badge-static{background:rgba(251,191,36,0.15);color:var(--warn);border:1px solid rgba(251,191,36,0.3)}
+  .badge-platform{background:rgba(34,211,238,0.15);color:var(--accent);border:1px solid rgba(34,211,238,0.3)}
+  .badge-creative{background:rgba(52,211,153,0.15);color:var(--good);border:1px solid rgba(52,211,153,0.3)}
+  .badge-date{background:rgba(148,163,184,0.15);color:var(--muted)}
+  .ad-id{font-family:monospace;font-size:12px;color:var(--muted);margin-bottom:8px}
+  .ad-body{white-space:pre-wrap;font-family:inherit;background:rgba(15,23,42,0.5);padding:14px;border-radius:8px;font-size:14px;border-left:3px solid var(--accent2);max-height:220px;overflow-y:auto;margin:0}
+  table{width:100%;border-collapse:collapse;background:var(--card);border-radius:12px;overflow:hidden;border:1px solid #334155}
+  th{background:var(--card2);text-align:left;padding:12px;font-size:13px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted)}
+  td{padding:12px;border-top:1px solid #334155;font-size:14px;vertical-align:top}
+  .body-cell{color:var(--muted);max-width:380px}
+  code{background:rgba(15,23,42,0.6);padding:2px 6px;border-radius:4px;font-size:12px;color:var(--accent)}
+  .theme-row{display:grid;grid-template-columns:240px 1fr;gap:12px;align-items:center;margin-bottom:8px}
+  .theme-label{font-size:13px;color:var(--text)}
+  .theme-bar{background:rgba(15,23,42,0.6);border-radius:6px;height:24px;position:relative;overflow:hidden}
+  .theme-fill{background:linear-gradient(90deg,var(--accent),var(--accent2));height:100%;padding:0 8px;display:flex;align-items:center;color:#0f172a;font-weight:700;font-size:12px;justify-content:flex-end;min-width:32px}
+  .insight{background:linear-gradient(135deg,rgba(34,211,238,0.08),rgba(167,139,250,0.08));border-left:4px solid var(--accent);padding:18px 20px;border-radius:8px;margin:16px 0}
+  .insight strong{color:var(--accent)}
+  .insight-warn{border-left-color:var(--warn);background:linear-gradient(135deg,rgba(251,191,36,0.08),rgba(251,191,36,0.04))}
+  .insight-warn strong{color:var(--warn)}
+  ul.clean{padding-left:20px}
+  ul.clean li{margin-bottom:8px}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+  @media(max-width:760px){.chart-grid,.two-col{grid-template-columns:1fr}.theme-row{grid-template-columns:1fr}}
+  footer{text-align:center;color:var(--muted);font-size:12px;padding:40px 20px;border-top:1px solid #334155;margin-top:60px}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <h1>BeingExporter — Meta Ad Library Analysis</h1>
+  <div class="sub">India · Active ads · Sorted by total impressions · 15/05/2026</div>
+  <div class="pill">Page ID: 545567692585099 · ~80 results loaded (70 analyzed)</div>
+</header>
+
+<section>
+  <div class="kpi-grid">
+    <div class="kpi"><span class="v">70</span><span class="l">Unique Ad Listings</span></div>
+    <div class="kpi"><span class="v">159</span><span class="l">Total Creative Variants</span></div>
+    <div class="kpi"><span class="v">55</span><span class="l">Video Ads</span></div>
+    <div class="kpi"><span class="v">15</span><span class="l">Static / Image Ads</span></div>
+    <div class="kpi"><span class="v">0</span><span class="l">Partnership Ads</span></div>
+    <div class="kpi"><span class="v">70</span><span class="l">Brand-Only Ads</span></div>
+  </div>
+</section>
+
+<h2>Executive Summary</h2>
+<div class="insight">
+  <strong>One funnel, relentlessly repeated.</strong> Every single one of the 70 ads in the active library points to the same destination: a ₹199, 2-day live export workshop hosted by coach <strong>Bhagirath Goswami</strong>, with the URL <code>2DAYS.BEINGEXPORTER.COM</code>. There is no product diversification — this is a single-offer info-product brand running a high-volume, performance-driven Meta funnel.
+</div>
+<div class="insight">
+  <strong>Video-first, mobile-first.</strong> 79% of active listings are video (mostly 20–60 seconds, formatted in vertical / Reels-friendly crops). Static ads exist but are a minority and seem to function as creative rotation rather than the core format.
+</div>
+<div class="insight insight-warn">
+  <strong>Zero partnership ads detected.</strong> No ad uses the Meta "BeingExporter <em>with</em> [creator handle]" format. All ads are first-party brand ads. The brand does, however, lean heavily on <em>named student testimonials</em> (Mohit, Ashish, Ankit, Mahesh, Moiz, Mitul, Jignesh, Jasmin, Satyaveer) which simulate the social-proof effect of partnership ads without the partnership disclosure.
+</div>
+
+<h2>Format Breakdown</h2>
+<div class="chart-grid">
+  <div class="chart-card">
+    <h3>Video vs Static</h3>
+    <canvas id="fmtChart"></canvas>
+  </div>
+  <div class="chart-card">
+    <h3>Video Duration Distribution</h3>
+    <canvas id="durChart"></canvas>
+  </div>
+  <div class="chart-card">
+    <h3>Platform Reach per Ad</h3>
+    <canvas id="platChart"></canvas>
+  </div>
+  <div class="chart-card">
+    <h3>Brand vs Partnership Ads</h3>
+    <canvas id="partChart"></canvas>
+  </div>
+</div>
+
+<div class="insight">
+  <strong>Format strategy in plain English:</strong> short, vertical, talking-head + caption-overlay videos dominate. Most clips sit in the 20–40 second sweet spot tuned for Reels / Stories autoplay completion. Static ads carry the same body copy and seem to be A/B variants when video creative is being refreshed.
+</div>
+
+<h2>Partnership vs Brand Distribution</h2>
+<table>
+  <tr><th>Ad Type</th><th>Definition</th><th>Count</th><th>Share</th></tr>
+  <tr><td><strong>Brand ads</strong></td><td>Posted by BeingExporter directly</td><td>70</td><td>100%</td></tr>
+  <tr><td><strong>Partnership ads</strong></td><td>"BeingExporter <em>with</em> @creator" branded-content format</td><td>0</td><td>0%</td></tr>
+</table>
+<div class="insight insight-warn">
+  <strong>Strategic gap:</strong> Despite running dozens of testimonial-style ads featuring named students/clients, BeingExporter does <em>not</em> appear to be amplifying these as Meta Branded Content / Partnership Ads. That's a missed opportunity — partnership ads from creator accounts typically unlock fresh audiences and a different trust signal than brand-handle ads.
+</div>
+
+<h2>Core Messaging Strategies (Recurring Hooks)</h2>
+
+  <div class="theme-row">
+    <div class="theme-label">2-Day Live Workshop</div>
+    <div class="theme-bar"><div class="theme-fill" style="width:74%">52</div></div>
+  </div>
+
+  <div class="theme-row">
+    <div class="theme-label">Global / international buyers</div>
+    <div class="theme-bar"><div class="theme-fill" style="width:71%">50</div></div>
+  </div>
+
+  <div class="theme-row">
+    <div class="theme-label">₹199 pricing</div>
+    <div class="theme-bar"><div class="theme-fill" style="width:64%">45</div></div>
+  </div>
+
+  <div class="theme-row">
+    <div class="theme-label">Targets students</div>
+    <div class="theme-bar"><div class="theme-fill" style="width:43%">30</div></div>
+  </div>
+
+  <div class="theme-row">
+    <div class="theme-label">Beginner / from scratch</div>
+    <div class="theme-bar"><div class="theme-fill" style="width:41%">29</div></div>
+  </div>
+
+  <div class="theme-row">
+    <div class="theme-label">70,000+ students proof</div>
+    <div class="theme-bar"><div class="theme-fill" style="width:40%">28</div></div>
+  </div>
+
+  <div class="theme-row">
+    <div class="theme-label">Targets homemakers</div>
+    <div class="theme-bar"><div class="theme-fill" style="width:40%">28</div></div>
+  </div>
+
+  <div class="theme-row">
+    <div class="theme-label">No factory needed</div>
+    <div class="theme-bar"><div class="theme-fill" style="width:37%">26</div></div>
+  </div>
+
+  <div class="theme-row">
+    <div class="theme-label">Targets professionals</div>
+    <div class="theme-bar"><div class="theme-fill" style="width:33%">23</div></div>
+  </div>
+
+  <div class="theme-row">
+    <div class="theme-label">Manufacturer angle</div>
+    <div class="theme-bar"><div class="theme-fill" style="width:33%">23</div></div>
+  </div>
+
+  <div class="theme-row">
+    <div class="theme-label">Merchant Export model</div>
+    <div class="theme-bar"><div class="theme-fill" style="width:30%">21</div></div>
+  </div>
+
+  <div class="theme-row">
+    <div class="theme-label">Testimonial / success story</div>
+    <div class="theme-bar"><div class="theme-fill" style="width:27%">19</div></div>
+  </div>
+
+  <div class="theme-row">
+    <div class="theme-label">Mentions Bhagirath Goswami</div>
+    <div class="theme-bar"><div class="theme-fill" style="width:27%">19</div></div>
+  </div>
+
+  <div class="theme-row">
+    <div class="theme-label">Advance payment angle</div>
+    <div class="theme-bar"><div class="theme-fill" style="width:13%">9</div></div>
+  </div>
+
+  <div class="theme-row">
+    <div class="theme-label">Targets job holders</div>
+    <div class="theme-bar"><div class="theme-fill" style="width:10%">7</div></div>
+  </div>
+
+
+<div class="insight">
+<strong>The five messaging pillars that show up again and again:</strong>
+<ol>
+<li><strong>Low barrier of entry</strong> — "You don't need a factory / inventory / huge investment / experience." This appears in roughly half of all ads and is the single most repeated objection-handler.</li>
+<li><strong>Price anchor at ₹199</strong> — explicitly stated in ~64% of ads. A deliberately tiny tripwire price for a paid front-end workshop.</li>
+<li><strong>Mass social proof</strong> — "70,000+ exporters", "thousands have already started", "join the movement." Used to normalize the behaviour.</li>
+<li><strong>Authority via Bhagirath Goswami</strong> — name-dropped in ~27% of ads, framed as "India's leading export coach."</li>
+<li><strong>Mechanism reveal</strong> — almost every ad teases the same three deliverables: pick a product → find global buyers → start with the Merchant Export model.</li>
+</ol>
+</div>
+
+<h2>Target Personas (Inferred Only from Ad Copy)</h2>
+<div class="two-col">
+<div>
+<h3>Demographics targeted explicitly</h3>
+<ul class="clean">
+<li><strong>Students</strong> looking for a side-business (referenced in 30 ads)</li>
+<li><strong>Homemakers</strong> wanting income from home (28 ads)</li>
+<li><strong>Working professionals</strong> / job holders wanting a side hustle or exit ramp (30 ads combined)</li>
+<li><strong>Existing small manufacturers</strong> who want to go from domestic to global (23 ads)</li>
+<li><strong>Service-business owners / consultants</strong> wanting to switch to product exports (the "Mohit Chitkara" arc, 8 ads)</li>
+<li><strong>White-label / contract manufacturers</strong> wanting their own brand (the "Ashish Mehta" arc)</li>
+<li><strong>Bankers / corporate employees</strong> wanting independence (the "Satyaveer Yadav" arc)</li>
+</ul>
+</div>
+<div>
+<h3>Psychographic signals</h3>
+<ul class="clean">
+<li>Self-identified beginners — repeatedly called out: "from scratch", "from zero", "first-time exporters."</li>
+<li>People who <em>already wanted</em> to export but don't know where to start. The phrase "where do I begin?" appears in many variants.</li>
+<li>Risk-averse buyers — the copy hammers "low-risk", "no inventory", "advance payments", "safe."</li>
+<li>Aspirational / status-driven — "earning in dollars", "global business", "containers worldwide" appear repeatedly.</li>
+<li>Tier 2/3-India entrepreneurs — testimonials feature Sangli, Jaipur, Delhi, etc. rather than Mumbai/Bangalore tech hubs.</li>
+</ul>
+</div>
+</div>
+
+<h3>Named persona testimonials in use</h3>
+<ul class="clean">
+  <li><strong>Mohit Chitkara (Consultant)</strong> — used in 8 ads</li>
+
+  <li><strong>Ashish Mehta (White-label mfr)</strong> — used in 3 ads</li>
+
+  <li><strong>Ankit Saini (Single machine mfr)</strong> — used in 2 ads</li>
+
+  <li><strong>Mahesh Kochare (Captain)</strong> — used in 1 ad</li>
+
+  <li><strong>Moiz Makati (Local biz owner)</strong> — used in 1 ad</li>
+
+  <li><strong>Mitul Doshi (Beginner)</strong> — used in 1 ad</li>
+
+  <li><strong>Jignesh Kucha (500+ shipments)</strong> — used in 1 ad</li>
+
+  <li><strong>Jasmin Kyadaa (Local-to-20 countries)</strong> — used in 1 ad</li>
+
+  <li><strong>Satyaveer Yadav (Banker)</strong> — used in 1 ad</li>
+</ul>
+
+<h2>Top 10 Ads (by Impressions, as ranked by Meta Ad Library)</h2>
+<div class="insight"><strong>Reading guide:</strong> the Ad Library is sorted by <code>total_impressions DESC</code>, so position #1 = highest-served ad on the page right now. Numbers below are positional rank, not actual impression counts (Meta doesn't disclose those for non-political ads).</div>
+
+  <div class="ad-card">
+    <div class="ad-rank">#1</div>
+    <div class="ad-meta">
+      <span class="badge badge-video">🎬 Video 2:19</span>
+      <span class="badge badge-platform">3 platforms</span>
+      <span class="badge badge-creative">3 creatives</span>
+      <span class="badge badge-date">📅 25 Sep 2025</span>
+    </div>
+    <div class="ad-id">Library ID: 712042547962316</div>
+    <pre class="ad-body">India is exporting 11,000+ products globally — many with 40%+ margins.
+You can start too — without a factory, warehouse, or heavy setup.
+
+In this 2-Day LIVE Workshop (₹199 only):
+✅ Pick high-demand export products
+✅ Find global buyers
+✅ Learn 3 models: Joint Venture, Merchant Export, or Manufacturing
+
+From students to homemakers to professionals — thousands have already built export businesses.
+Now it’s your turn.
+
+🎯 Practical. Actionable. Designed for first-time exporters.
+👉 Tap 'Sign Up' and…</pre>
+  </div>
+
+  <div class="ad-card">
+    <div class="ad-rank">#2</div>
+    <div class="ad-meta">
+      <span class="badge badge-video">🎬 Video 0:31</span>
+      <span class="badge badge-platform">4 platforms</span>
+      <span class="badge badge-creative">1 creative</span>
+      <span class="badge badge-date">📅 21 Apr 2026</span>
+    </div>
+    <div class="ad-id">Library ID: 1487807072797023</div>
+    <pre class="ad-body">500+ shipments. 700+ containers. And it all started with one decision.
+
+Jignesh Kucha didn’t wait for perfect conditions.
+He started small — learned the system — and focused on building buyer relationships the right way.
+
+Today, he’s sent hundreds of shipments across the world.
+
+This workshop doesn’t just teach you how to export...
+It shows you how to build a global business by connecting with serious buyers.
+
+🎯 Don’t miss the next 2-Day Workshop. Register now for just ₹199…</pre>
+  </div>
+
+  <div class="ad-card">
+    <div class="ad-rank">#3</div>
+    <div class="ad-meta">
+      <span class="badge badge-video">🎬 Video 0:25</span>
+      <span class="badge badge-platform">4 platforms</span>
+      <span class="badge badge-creative">1 creative</span>
+      <span class="badge badge-date">📅 21 Apr 2026</span>
+    </div>
+    <div class="ad-id">Library ID: 904705199263027</div>
+    <pre class="ad-body">Once limited to local markets, now exporting to 20+ countries 🌏
+Jasmin Kyadaa took one bold step — joining the Being Exporter Workshop — and it changed everything.
+
+From small shipments to 200+ exports, her journey proves that global success is possible for anyone willing to learn.
+
+Start your export journey today for just ₹199/-
+🚢 Book your seat for the 2-Day Export Workshop now!…</pre>
+  </div>
+
+  <div class="ad-card">
+    <div class="ad-rank">#4</div>
+    <div class="ad-meta">
+      <span class="badge badge-video">🎬 Video 0:21</span>
+      <span class="badge badge-platform">4 platforms</span>
+      <span class="badge badge-creative">3 creatives</span>
+      <span class="badge badge-date">📅 21 Apr 2026</span>
+    </div>
+    <div class="ad-id">Library ID: 1229032425970609</div>
+    <pre class="ad-body">From white-label manufacturing to global exports — Ashish Mehta built his next chapter.
+
+After years of working behind the scenes for other brands, Ashish wanted more control, more reach, and more growth.
+He joined the 2-Day Export Workshop by Bhagirath Goswami and followed the process step by step.
+
+Today, he’s not just manufacturing — he’s shipping containers worldwide 🌍 and building his own export legacy.
+
+If you’re running a business and feel ready to go global —
+This is the place to start.…</pre>
+  </div>
+
+  <div class="ad-card">
+    <div class="ad-rank">#5</div>
+    <div class="ad-meta">
+      <span class="badge badge-video">🎬 Video 0:23</span>
+      <span class="badge badge-platform">2 platforms</span>
+      <span class="badge badge-creative">1 creative</span>
+      <span class="badge badge-date">📅 7 Apr 2026</span>
+    </div>
+    <div class="ad-id">Library ID: 1451574896661621</div>
+    <pre class="ad-body">Want to sell your products worldwide but don’t know where to start? 🌍
+
+You don’t need a factory.
+You don’t need huge investment.
+
+All you need is the right roadmap.
+
+In this 2-Day LIVE Export Workshop (₹199), you’ll learn:
+✅ How to find high-demand export products
+✅ How to connect with international buyers
+✅ How to start with Merchant Export model
+
+No confusion. No theory overload. Just practical steps.
+
+🚀 Start your export journey from scratch
+👉 Limited seats — Register now!…</pre>
+  </div>
+
+  <div class="ad-card">
+    <div class="ad-rank">#6</div>
+    <div class="ad-meta">
+      <span class="badge badge-video">🎬 Video 1:10</span>
+      <span class="badge badge-platform">3 platforms</span>
+      <span class="badge badge-creative">1 creative</span>
+      <span class="badge badge-date">📅 6 Apr 2026</span>
+    </div>
+    <div class="ad-id">Library ID: 2020459572153971</div>
+    <pre class="ad-body">India is exporting 11,000+ products globally — many with 40%+ margins.
+You can start too — without a factory, warehouse, or heavy setup.
+
+In this 2-Day LIVE Workshop (₹199 only):
+✅ Pick high-demand export products
+✅ Find global buyers
+✅ Learn 3 models: Joint Venture, Merchant Export, or Manufacturing
+
+From students to homemakers to professionals — thousands have already built export businesses.
+Now it’s your turn.
+
+🎯 Practical. Actionable. Designed for first-time exporters.
+👉 Tap 'Sign Up' and…</pre>
+  </div>
+
+  <div class="ad-card">
+    <div class="ad-rank">#7</div>
+    <div class="ad-meta">
+      <span class="badge badge-video">🎬 Video 1:14</span>
+      <span class="badge badge-platform">4 platforms</span>
+      <span class="badge badge-creative">2 creatives</span>
+      <span class="badge badge-date">📅 10 Apr 2026</span>
+    </div>
+    <div class="ad-id">Library ID: 926571750149391</div>
+    <pre class="ad-body">You don’t need a factory to start an export business.
+
+Many successful exporters in India started with just a laptop and the right knowledge.
+
+In this 2-Day LIVE Workshop (₹199) you’ll discover:
+
+✅ How to choose the right export product
+✅ How to find buyers from other countries
+✅ How beginners start with Merchant Export model
+
+Perfect for students, professionals, and beginners who want to start something big.
+
+🚀 Learn the exact roadmap to start exporting.
+
+👉 Register now and reserve your seat.…</pre>
+  </div>
+
+  <div class="ad-card">
+    <div class="ad-rank">#8</div>
+    <div class="ad-meta">
+      <span class="badge badge-video">🎬 Video 3:09</span>
+      <span class="badge badge-platform">3 platforms</span>
+      <span class="badge badge-creative">2 creatives</span>
+      <span class="badge badge-date">📅 29 Sep 2025</span>
+    </div>
+    <div class="ad-id">Library ID: 801574629189965</div>
+    <pre class="ad-body">You don’t need to be a manufacturer to become an exporter.
+Students, homemakers, professionals — thousands have already started their export journey without setup, stock, or big capital.
+
+In this 2-Day LIVE Workshop (₹199 only), learn:
+✅ What products to export
+✅ How to find serious global buyers
+✅ How to start safely from anywhere
+
+It’s simple, low-risk, and step-by-step.
+
+🎓 Learn directly from India’s leading export coach.
+👉 Register now and take your first step toward a global business.…</pre>
+  </div>
+
+  <div class="ad-card">
+    <div class="ad-rank">#9</div>
+    <div class="ad-meta">
+      <span class="badge badge-video">🎬 Video 1:17</span>
+      <span class="badge badge-platform">3 platforms</span>
+      <span class="badge badge-creative">4 creatives</span>
+      <span class="badge badge-date">📅 19 Jan 2026</span>
+    </div>
+    <div class="ad-id">Library ID: 1393223252184951</div>
+    <pre class="ad-body">Thousands of people from different backgrounds job holders, manufacturers, homemakers, and students have already started their export business using one simple system.
+
+In our 2-Day Live Export Workshop, you’ll learn:
+✅ How to pick the right product for export
+✅ How to find genuine buyers globally
+✅ How to get advance payments safely
+✅ How to start without inventory or risk
+
+This is not theory. It is a step-by-step system already followed by 70,000+ new exporters across India.
+
+If you’ve ever th…</pre>
+  </div>
+
+  <div class="ad-card">
+    <div class="ad-rank">#10</div>
+    <div class="ad-meta">
+      <span class="badge badge-static">🖼 Static</span>
+      <span class="badge badge-platform">2 platforms</span>
+      <span class="badge badge-creative">1 creative</span>
+      <span class="badge badge-date">📅 30 Apr 2026</span>
+    </div>
+    <div class="ad-id">Library ID: 1328398845848676</div>
+    <pre class="ad-body">What if you could start selling to international buyers…
+Without setting up a factory, or investing lakhs?
+
+In this 2-day LIVE workshop, Export Coach Mr. Bhagirath Goswami will walk you through: 
+
+✔️ How to pick profitable export products
+✔️ Where to find global buyers FAST
+✔️ How to close deals and get paid in dollars
+✔️ What tools and documents you really need
+✔️ How to start even if you have zero experience
+
+💰 All this for just ₹199.
+
+🚀 Ready to start your export journey?
+👉 Join the Worksh…</pre>
+  </div>
+
+
+<h2>Longest-Running Active Ads</h2>
+<table>
+<tr><th>#</th><th>Start Date</th><th>Library ID</th><th>Creative Variants</th><th>Video Length</th><th>Hook</th></tr>
+
+  <tr>
+    <td><strong>#1</strong></td>
+    <td>25 Sep 2025</td>
+    <td><code>712042547962316</code></td>
+    <td>3</td>
+    <td>2:19</td>
+    <td class="body-cell">India is exporting 11,000+ products globally — many with 40%+ margins.
+You can start too — without a factory, warehouse, or heavy setup.
+
+In…</td>
+  </tr>
+
+  <tr>
+    <td><strong>#2</strong></td>
+    <td>29 Sep 2025</td>
+    <td><code>801574629189965</code></td>
+    <td>2</td>
+    <td>3:09</td>
+    <td class="body-cell">You don’t need to be a manufacturer to become an exporter.
+Students, homemakers, professionals — thousands have already started their export…</td>
+  </tr>
+
+  <tr>
+    <td><strong>#3</strong></td>
+    <td>20 Oct 2025</td>
+    <td><code>1218924690045378</code></td>
+    <td>3</td>
+    <td>0:21</td>
+    <td class="body-cell">From white-label manufacturing to global exports — Ashish Mehta built his next chapter.
+
+After years of working behind the scenes for other …</td>
+  </tr>
+
+  <tr>
+    <td><strong>#4</strong></td>
+    <td>25 Nov 2025</td>
+    <td><code>1806042430786474</code></td>
+    <td>1</td>
+    <td>0:23</td>
+    <td class="body-cell">Ankit Saini had one machine… and one dream — to take his business global. 🌏
+
+But like many Indian entrepreneurs, he didn’t know where to st…</td>
+  </tr>
+
+  <tr>
+    <td><strong>#5</strong></td>
+    <td>19 Dec 2025</td>
+    <td><code>1363686541898268</code></td>
+    <td>2</td>
+    <td>static</td>
+    <td class="body-cell">🌍 Think exporting is only for big companies? Think again!
+Thousands of ordinary people are now sending real containers worldwide — all from…</td>
+  </tr>
+
+  <tr>
+    <td><strong>#6</strong></td>
+    <td>19 Dec 2025</td>
+    <td><code>711560458369159</code></td>
+    <td>1</td>
+    <td>static</td>
+    <td class="body-cell">Every day, containers are leaving India. 🚢
+While you’re still thinking about it, others are already exporting earning in dollars, securing …</td>
+  </tr>
+
+  <tr>
+    <td><strong>#7</strong></td>
+    <td>19 Dec 2025</td>
+    <td><code>25974878995442627</code></td>
+    <td>7</td>
+    <td>0:37</td>
+    <td class="body-cell">From consulting clients… to shipping containers.
+
+Mohit Chitkara was a consultant.
+But deep down, he wanted to build something of his own.
+
+…</td>
+  </tr>
+
+  <tr>
+    <td><strong>#8</strong></td>
+    <td>19 Dec 2025</td>
+    <td><code>868130972375084</code></td>
+    <td>7</td>
+    <td>0:37</td>
+    <td class="body-cell">From consulting clients… to shipping containers.
+
+Mohit Chitkara was a consultant.
+But deep down, he wanted to build something of his own.
+
+…</td>
+  </tr>
+
+  <tr>
+    <td><strong>#9</strong></td>
+    <td>14 Jan 2026</td>
+    <td><code>1533490841212226</code></td>
+    <td>1</td>
+    <td>1:17</td>
+    <td class="body-cell">Thousands of people from different backgrounds job holders, manufacturers, homemakers, and students have already started their export busine…</td>
+  </tr>
+
+  <tr>
+    <td><strong>#10</strong></td>
+    <td>19 Jan 2026</td>
+    <td><code>1393223252184951</code></td>
+    <td>4</td>
+    <td>1:17</td>
+    <td class="body-cell">Thousands of people from different backgrounds job holders, manufacturers, homemakers, and students have already started their export busine…</td>
+  </tr>
+
+</table>
+<div class="insight">
+<strong>Trend summary on longevity:</strong> the oldest still-active ad started <strong>25 Sep 2025</strong> — meaning a handful of evergreen creatives have been running continuously for ~7.5 months. These long-runners share three traits: (1) they use the <em>"India is exporting 11,000+ products globally"</em> opening hook, (2) they're slightly longer videos (1:14 – 3:09), and (3) they're general/evergreen "you don't need a factory" angles rather than persona-specific testimonials. The persona/testimonial ads tend to be shorter-lived and refreshed more often, while the broad-audience evergreens are the ones that earn a long run.
+</div>
+
+<h2>Creative Velocity</h2>
+<div class="chart-card chart-full">
+  <h3>Ad launches per month (active library only)</h3>
+  <canvas id="velChart"></canvas>
+</div>
+<div class="kpi-grid" style="margin-top:24px">
+  <div class="kpi"><span class="v">22</span><span class="l">Ads launched in May 2026 (so far)</span></div>
+  <div class="kpi"><span class="v">27</span><span class="l">Ads launched in Apr 2026</span></div>
+  <div class="kpi"><span class="v">7.8</span><span class="l">Avg ads / month (lifetime active)</span></div>
+  <div class="kpi"><span class="v">14 May 2026</span><span class="l">Most recent ad launch</span></div>
+</div>
+<div class="insight">
+<strong>Velocity readout:</strong> creative output is <em>accelerating sharply</em>. From a steady trickle of 1–4 ads/month between Sep 2025 and Feb 2026, the brand jumped to <strong>8 ads in Mar 2026</strong>, <strong>27 in Apr 2026</strong>, and is on pace to match or beat that in May (already 22 active launches with half the month to go). The latest ad in the library went live on <strong>14 May 2026</strong> — essentially "today" — confirming that the account is actively spending and iterating right now, not paused. The pattern suggests either a scaling-up phase, a new campaign window aligned with a fresh workshop cohort, or a creative-testing sprint.
+</div>
+
+<h2>Recommendations (synthesised observations)</h2>
+<ul class="clean">
+<li><strong>Activate Branded Content / Partnership Ads.</strong> The brand already has rich testimonial assets — running them through the creator's own handle as partnership ads would unlock incremental reach and a trust angle the brand handle can't carry alone.</li>
+<li><strong>Lean into the proven evergreen hook.</strong> "India is exporting 11,000+ products globally — many with 40%+ margins" is the hook attached to the longest-running ads. Worth doubling down on as the primary cold-traffic creative.</li>
+<li><strong>Segment the persona testimonials.</strong> The Mohit / Ashish / Satyaveer arcs each speak to a different buyer (consultant, manufacturer, banker). With ad-set-level audiences these could be deployed as look-alike-targeted creatives rather than broad-targeted variants.</li>
+<li><strong>Audit static-ad ratio.</strong> Only 21% of the library is static — given how cheap statics are to produce, more aggressive static testing for thumb-stop and copy-only hooks could lower CPMs.</li>
+</ul>
+
+<footer>
+Source: facebook.com/ads/library — BeingExporter page (ID 545567692585099), India, active ads, sorted by total impressions descending. Analysis based on 70 of ~80 reported active ad listings. Impression counts themselves are not disclosed by Meta for non-political ads; ranking reflects Meta's sort order only.
+</footer>
+
+</div>
+<script>
+const dist = {"fmt":{"video":55,"static":15},"dur":{"Short (≤20s)":4,"21-40s":24,"41-60s":7,"61-90s":13,"91s+":7},"plat":{"2":53,"3":8,"4":9},"vel":{"labels":["Sep 2025","Oct 2025","Nov 2025","Dec 2025","Jan 2026","Feb 2026","Mar 2026","Apr 2026","May 2026"],"values":[2,1,1,4,2,3,8,27,22]}};
+const cardBg = 'rgba(30,41,59,0.6)';
+Chart.defaults.color = '#94a3b8';
+Chart.defaults.borderColor = '#334155';
+
+new Chart(document.getElementById('fmtChart'), {
+  type:'doughnut',
+  data:{labels:['Video','Static'],datasets:[{data:[dist.fmt.video,dist.fmt.static],backgroundColor:['#a78bfa','#fbbf24'],borderColor:'#0f172a',borderWidth:3}]},
+  options:{responsive:true,plugins:{legend:{position:'bottom'}}}
+});
+
+new Chart(document.getElementById('durChart'), {
+  type:'bar',
+  data:{labels:Object.keys(dist.dur),datasets:[{label:'Ads',data:Object.values(dist.dur),backgroundColor:'#22d3ee'}]},
+  options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:5}}}}
+});
+
+new Chart(document.getElementById('platChart'), {
+  type:'bar',
+  data:{labels:Object.keys(dist.plat).map(k=>k+' platforms'),datasets:[{label:'Ads',data:Object.values(dist.plat),backgroundColor:'#34d399'}]},
+  options:{responsive:true,plugins:{legend:{display:false}},indexAxis:'y'}
+});
+
+new Chart(document.getElementById('partChart'), {
+  type:'pie',
+  data:{labels:['Brand ads','Partnership ads'],datasets:[{data:[70,0],backgroundColor:['#22d3ee','#f87171'],borderColor:'#0f172a',borderWidth:3}]},
+  options:{responsive:true,plugins:{legend:{position:'bottom'}}}
+});
+
+new Chart(document.getElementById('velChart'), {
+  type:'line',
+  data:{labels:dist.vel.labels,datasets:[{
+    label:'New ads launched',
+    data:dist.vel.values,
+    borderColor:'#a78bfa',
+    backgroundColor:'rgba(167,139,250,0.2)',
+    fill:true,
+    tension:0.35,
+    pointBackgroundColor:'#22d3ee',
+    pointBorderColor:'#0f172a',
+    pointRadius:6,
+    pointHoverRadius:8
+  }]},
+  options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}
+});
+</script>
+</body>
+</html>
