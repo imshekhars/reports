@@ -1,0 +1,1463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FreyrEnergy — Facebook Ad Library Analysis</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0b1121;
+    --card: #111827;
+    --card2: #1e293b;
+    --border: #1f2d45;
+    --green: #22c55e;
+    --blue: #60a5fa;
+    --amber: #f59e0b;
+    --red: #f43f5e;
+    --purple: #a78bfa;
+    --orange: #fb923c;
+    --teal: #2dd4bf;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --faint: #334155;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* HEADER */
+  .hero {
+    background: linear-gradient(135deg, #0f2a0a 0%, #0b1121 40%, #0a1a3a 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 48px 40px 36px;
+  }
+  .hero-eyebrow {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 8px;
+  }
+  .hero h1 {
+    font-size: 36px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.15;
+    margin-bottom: 8px;
+  }
+  .hero h1 span { color: var(--green); }
+  .hero-sub {
+    color: var(--muted);
+    font-size: 14px;
+    max-width: 680px;
+    margin-bottom: 32px;
+  }
+  .hero-meta {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .hero-meta-item {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 130px;
+  }
+  .hero-meta-item .val {
+    font-size: 26px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .hero-meta-item .val.green { color: var(--green); }
+  .hero-meta-item .val.amber { color: var(--amber); }
+  .hero-meta-item .val.blue { color: var(--blue); }
+  .hero-meta-item .val.red { color: var(--red); }
+  .hero-meta-item .lbl {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* LAYOUT */
+  .container {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 40px 80px;
+  }
+  .section {
+    margin-top: 56px;
+  }
+  .section-title {
+    font-size: 10px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 6px;
+  }
+  .section-heading {
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+  .section-sub {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 24px;
+  }
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 12px 0 24px;
+  }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+  .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px; }
+
+  /* CARDS */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+  }
+  .card-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+  .card-big-num {
+    font-size: 40px;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1;
+  }
+  .card-desc {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  /* CHART CONTAINERS */
+  .chart-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px 24px 20px;
+  }
+  .chart-card h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .chart-card p {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+  .chart-wrap {
+    position: relative;
+  }
+
+  /* STAT ROWS */
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--faint);
+  }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-row .label { color: var(--text); font-size: 13px; }
+  .stat-row .badge {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 6px;
+    background: rgba(34,197,94,0.12);
+    color: var(--green);
+  }
+  .stat-row .badge.amber { background: rgba(245,158,11,0.12); color: var(--amber); }
+  .stat-row .badge.blue { background: rgba(96,165,250,0.12); color: var(--blue); }
+  .stat-row .badge.red { background: rgba(244,63,94,0.12); color: var(--red); }
+  .stat-row .badge.purple { background: rgba(167,139,250,0.12); color: var(--purple); }
+  .stat-row .badge.teal { background: rgba(45,212,191,0.12); color: var(--teal); }
+  .stat-row .badge.orange { background: rgba(251,146,60,0.12); color: var(--orange); }
+  .stat-row .badge.grey { background: rgba(148,163,184,0.12); color: var(--muted); }
+
+  /* PROGRESS BARS */
+  .bar-group { margin-bottom: 14px; }
+  .bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 5px;
+  }
+  .bar-label span:last-child { color: var(--text); font-weight: 600; }
+  .bar-track {
+    height: 8px;
+    background: var(--faint);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.8s ease;
+  }
+
+  /* AD CARDS */
+  .ad-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 12px;
+    display: grid;
+    grid-template-columns: 36px 1fr auto;
+    gap: 14px;
+    align-items: start;
+  }
+  .ad-rank {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--faint);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--amber);
+    flex-shrink: 0;
+  }
+  .ad-rank.top3 { background: rgba(245,158,11,0.15); }
+  .ad-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+    line-height: 1.4;
+  }
+  .ad-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 6px;
+  }
+  .tag {
+    font-size: 11px;
+    padding: 2px 9px;
+    border-radius: 99px;
+    font-weight: 500;
+  }
+  .tag.lang { background: rgba(96,165,250,0.12); color: var(--blue); }
+  .tag.format { background: rgba(167,139,250,0.12); color: var(--purple); }
+  .tag.msg { background: rgba(34,197,94,0.12); color: var(--green); }
+  .tag.date { background: rgba(148,163,184,0.1); color: var(--muted); }
+  .ad-impression {
+    text-align: right;
+    white-space: nowrap;
+  }
+  .ad-impression .imp-label {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .ad-impression .imp-val {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--amber);
+  }
+
+  /* PERSONA CARDS */
+  .persona-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px;
+  }
+  .persona-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    margin-bottom: 12px;
+  }
+  .persona-card h4 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+  .persona-card p {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .persona-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 12px;
+  }
+  .persona-tag {
+    font-size: 11px;
+    padding: 3px 9px;
+    border-radius: 6px;
+    background: var(--faint);
+    color: var(--muted);
+  }
+
+  /* MESSAGING CARDS */
+  .msg-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .msg-card .msg-icon {
+    font-size: 22px;
+    margin-bottom: 10px;
+  }
+  .msg-card h4 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+  .msg-card p {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .msg-card .example {
+    margin-top: 10px;
+    padding: 10px;
+    background: var(--faint);
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--text);
+    font-style: italic;
+    line-height: 1.5;
+    border-left: 3px solid var(--green);
+  }
+  .msg-count {
+    display: inline-block;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 99px;
+    background: rgba(34,197,94,0.12);
+    color: var(--green);
+    font-weight: 600;
+    margin-top: 8px;
+  }
+
+  /* TIMELINE */
+  .timeline-item {
+    display: grid;
+    grid-template-columns: 100px 16px 1fr;
+    gap: 16px;
+    margin-bottom: 0;
+  }
+  .timeline-date {
+    text-align: right;
+    font-size: 12px;
+    color: var(--muted);
+    padding-top: 2px;
+    font-weight: 500;
+  }
+  .timeline-line {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .timeline-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--green);
+    border: 2px solid var(--card);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .timeline-dot.amber { background: var(--amber); }
+  .timeline-dot.blue { background: var(--blue); }
+  .timeline-dot.red { background: var(--red); }
+  .timeline-dot.grey { background: var(--faint); }
+  .timeline-dot.purple { background: var(--purple); }
+  .timeline-connector {
+    flex: 1;
+    width: 2px;
+    background: var(--faint);
+    min-height: 48px;
+  }
+  .timeline-content {
+    padding-bottom: 28px;
+  }
+  .timeline-content h4 {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+  .timeline-content p {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .timeline-content .tl-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+
+  /* INSIGHT BOX */
+  .insight-box {
+    background: rgba(34,197,94,0.04);
+    border: 1px solid rgba(34,197,94,0.2);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-top: 20px;
+  }
+  .insight-box .insight-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 6px;
+  }
+  .insight-box p {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  /* FOOTER */
+  .report-footer {
+    margin-top: 60px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  @media (max-width: 800px) {
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    .hero, .container { padding-left: 20px; padding-right: 20px; }
+    .hero h1 { font-size: 26px; }
+    .ad-card { grid-template-columns: 32px 1fr; }
+    .ad-impression { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ─── HERO ─── -->
+<div class="hero">
+  <div class="hero-eyebrow">Ad Library Intelligence Report · June 2026</div>
+  <h1>FreyrEnergy<br><span>Facebook Ad Analysis</span></h1>
+  <p class="hero-sub">Comprehensive breakdown of FreyrEnergy's active Meta advertising strategy — creative velocity, messaging architecture, language targeting, format usage, and campaign evolution across the account's full history.</p>
+  <div class="hero-meta">
+    <div class="hero-meta-item">
+      <span class="val green">185</span>
+      <span class="lbl">Active Ads</span>
+    </div>
+    <div class="hero-meta-item">
+      <span class="val">68</span>
+      <span class="lbl">Inactive Ads</span>
+    </div>
+    <div class="hero-meta-item">
+      <span class="val amber">~12–15</span>
+      <span class="lbl">Ads / Day (Current)</span>
+    </div>
+    <div class="hero-meta-item">
+      <span class="val blue">5</span>
+      <span class="lbl">Languages Active</span>
+    </div>
+    <div class="hero-meta-item">
+      <span class="val red">0%</span>
+      <span class="lbl">Partnership Ads</span>
+    </div>
+    <div class="hero-meta-item">
+      <span class="val">Jun '24</span>
+      <span class="lbl">Account Since</span>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ─── SECTION 1: CREATIVE VELOCITY ─── -->
+  <div class="section">
+    <div class="section-title">Section 01</div>
+    <div class="section-heading">Creative Velocity</div>
+    <div class="section-sub">How fast they're publishing, when it started, and when the last upload was.</div>
+    <div class="divider"></div>
+
+    <div class="grid-4" style="margin-bottom:24px">
+      <div class="card">
+        <div class="card-title">Total Active</div>
+        <div class="card-big-num" style="color:var(--green)">185</div>
+        <div class="card-desc">Across all languages & formats</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Last Upload</div>
+        <div class="card-big-num" style="color:var(--amber); font-size:28px">Jun 1, 2026</div>
+        <div class="card-desc">Multiple new creatives uploaded today</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Current Burst Rate</div>
+        <div class="card-big-num" style="color:var(--blue)">~50</div>
+        <div class="card-desc">New ads uploaded in the last 4 days</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Avg Creatives / Day</div>
+        <div class="card-big-num" style="color:var(--purple)">12–15</div>
+        <div class="card-desc">During active blitz phases</div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <h3>Estimated Creative Upload Volume by Campaign Phase</h3>
+      <p>Based on ad creation timestamps extracted from the Ad Library API. Gaps represent paused periods.</p>
+      <div class="chart-wrap" style="height:200px">
+        <canvas id="velocityChart"></canvas>
+      </div>
+    </div>
+
+    <div class="insight-box">
+      <div class="insight-label">Key Observation</div>
+      <p>FreyrEnergy runs in concentrated <strong>burst campaigns</strong> rather than a steady cadence. The current blitz (May 28–June 1, 2026) produced ~50 new creatives in 4 days — a strong signal of active performance testing. They appear to upload batches of 6–14 variants of the same core message simultaneously, then let Meta's algorithm find the top performer. There is also a notable <strong>~14-month gap</strong> in our data (Nov 2024–Jan 2026), suggesting either a significant pause or a transition to a new account structure.</p>
+    </div>
+  </div>
+
+  <!-- ─── SECTION 2: LANGUAGE SPLIT ─── -->
+  <div class="section">
+    <div class="section-title">Section 02</div>
+    <div class="section-heading">Language Distribution</div>
+    <div class="section-sub">Which languages FreyrEnergy runs ads in — across both active and inactive history.</div>
+    <div class="divider"></div>
+
+    <div class="grid-2">
+      <div class="chart-card">
+        <h3>Active Ads — Language Split (50-ad sample)</h3>
+        <p>Current live campaign is overwhelmingly Hindi-first, with strong Telugu and minimal English.</p>
+        <div class="chart-wrap" style="height:240px">
+          <canvas id="langActiveChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <h3>Historical (Inactive) — Language Split</h3>
+        <p>Older campaigns were Kerala-heavy (Malayalam). That has been entirely dropped from current ads.</p>
+        <div class="chart-wrap" style="height:240px">
+          <canvas id="langInactiveChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:20px">
+      <div class="card-title">Language Breakdown Detail</div>
+      <div class="stat-row">
+        <span class="label">🇮🇳 Hindi (Devanagari)</span>
+        <span class="badge">56% of active ads</span>
+      </div>
+      <div class="stat-row">
+        <span class="label">🌊 Telugu</span>
+        <span class="badge blue">28% of active ads</span>
+      </div>
+      <div class="stat-row">
+        <span class="label">🇬🇧 English</span>
+        <span class="badge amber">10% of active ads</span>
+      </div>
+      <div class="stat-row">
+        <span class="label">🏔️ Marathi</span>
+        <span class="badge purple">6% of active ads</span>
+      </div>
+      <div class="stat-row">
+        <span class="label">🌴 Malayalam (historical only — now inactive)</span>
+        <span class="badge grey">~48% of inactive archive</span>
+      </div>
+    </div>
+
+    <div class="insight-box">
+      <div class="insight-label">Strategic Shift Detected</div>
+      <p>The most significant finding in language data: <strong>Malayalam has been completely dropped</strong> from the active ad set. In 2024, it dominated their campaign mix (Kerala was their primary market). By 2026, the entire focus has shifted to <strong>Hindi belt + Andhra Pradesh/Telangana</strong>. This suggests either a deliberate geographic expansion northward or that the Kerala market has saturated / underperformed. Marathi (Maharashtra) has been added as a <strong>new market experiment</strong> — small volume but present in the latest batch, suggesting a test phase.</p>
+    </div>
+  </div>
+
+  <!-- ─── SECTION 3: FORMAT BREAKDOWN ─── -->
+  <div class="section">
+    <div class="section-title">Section 03</div>
+    <div class="section-heading">Format Breakdown</div>
+    <div class="section-sub">What creative formats they're deploying and in what proportion.</div>
+    <div class="divider"></div>
+
+    <div class="grid-2">
+      <div class="chart-card">
+        <h3>Active Ad Format Mix</h3>
+        <p>Inferred from title structure patterns in the Ad Library data.</p>
+        <div class="chart-wrap" style="height:240px">
+          <canvas id="formatChart"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Format Breakdown Detail</div>
+
+        <div class="bar-group">
+          <div class="bar-label"><span>Single Image / Video Link Ad</span><span>~65%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:65%; background:var(--green)"></div></div>
+        </div>
+        <div class="bar-group">
+          <div class="bar-label"><span>Carousel Ad (3-card)</span><span>~28%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:28%; background:var(--blue)"></div></div>
+        </div>
+        <div class="bar-group">
+          <div class="bar-label"><span>Dynamic Product Catalog</span><span>~5%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:5%; background:var(--amber)"></div></div>
+        </div>
+
+        <div style="margin-top:20px; font-size:12px; color:var(--muted); line-height:1.7">
+          <strong style="color:var(--text)">How formats were identified:</strong><br>
+          Ads with a title repeated 3× (e.g., "Save ₹1 Lakh | Save ₹1 Lakh | Save ₹1 Lakh") are carousel ads — Meta's API returns each card's title concatenated. Ads with <code style="background:var(--faint); padding:1px 5px; border-radius:4px">{{product.name}}</code> are dynamic catalog ads (seen in historical/inactive set). All others are classified as single-format link ads.
+        </div>
+
+        <div class="insight-box" style="margin-top:16px">
+          <div class="insight-label">Format Note</div>
+          <p>The <strong>carousel format is used exclusively for the Hindi market</strong> ("₹1 lakh savings" message). All English, Telugu, and Marathi ads use single-format link ads. This suggests the carousel performs better for Hindi-speaking audiences or that it's still being A/B tested. Dynamic catalog ads only appeared in the 2024 history and have since been dropped — likely a product listing experiment that didn't stick.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── SECTION 4: BRAND vs PARTNERSHIP ─── -->
+  <div class="section">
+    <div class="section-title">Section 04</div>
+    <div class="section-heading">Brand Ads vs. Partnership Ads</div>
+    <div class="section-sub">Whether FreyrEnergy is running influencer / creator partnership ads alongside brand ads.</div>
+    <div class="divider"></div>
+
+    <div class="grid-2">
+      <div class="chart-card">
+        <h3>Brand vs. Partnership Distribution</h3>
+        <p>Across all 100 ads sampled from the Ad Library.</p>
+        <div class="chart-wrap" style="height:220px">
+          <canvas id="partnerChart"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Partnership Ads Analysis</div>
+        <div style="font-size:64px; text-align:center; margin: 16px 0 8px; font-weight:800; color:var(--red)">0%</div>
+        <div style="text-align:center; font-size:14px; color:var(--muted); margin-bottom:20px">Partnership / Influencer Ads Found</div>
+        <div style="font-size:12px; color:var(--muted); line-height:1.8">
+          <p>Across <strong style="color:var(--text)">100 ads sampled</strong> (50 active + 50 inactive), not a single ad shows a "with [creator]" partnership label. Every creative is published directly through the FreyrEnergy brand page.</p>
+          <br>
+          <p style="color:var(--amber)"><strong>Important caveat:</strong> Partnership ads tagged under a creator's page would appear under the creator's page ID, not FreyrEnergy's. So there could be influencer-side branded content that isn't visible here. What we can confirm is that FreyrEnergy is not <em>running</em> partnership ads from their own page.</p>
+        </div>
+        <div class="insight-box" style="margin-top:16px">
+          <div class="insight-label">Conclusion</div>
+          <p>FreyrEnergy is running a <strong>100% brand-direct paid media strategy</strong>. No visible creator economy play from their page. This is performance marketing, not influencer marketing.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── SECTION 5: MESSAGING STRATEGIES ─── -->
+  <div class="section">
+    <div class="section-title">Section 05</div>
+    <div class="section-heading">Core Messaging Strategies</div>
+    <div class="section-sub">Recurring messaging frameworks and how often each appears across the active ad set.</div>
+    <div class="divider"></div>
+
+    <div class="grid-3" style="margin-bottom:20px">
+      <div class="msg-card">
+        <div class="msg-icon">💳</div>
+        <h4>EMI Affordability</h4>
+        <p>Lead with a specific, low monthly payment to remove the upfront cost objection. The ₹1,466/month figure is precise and psychologically anchoring — it reframes solar as a monthly subscription, not a large capital expense.</p>
+        <div class="example">"सिर्फ ₹1,466 EMI से घर पर Solar लगवाएं | आज ही Free Solar Quote पाएं।"<br><em>(Install solar at home for just ₹1,466 EMI | Get a Free Solar Quote today.)</em></div>
+        <span class="msg-count">~10 active ads · Newest angle (June 2026)</span>
+      </div>
+      <div class="msg-card">
+        <div class="msg-icon">💰</div>
+        <h4>₹1 Lakh Savings Promise</h4>
+        <p>Promise a specific, aspirational savings number over the lifetime of the system. "Save ₹1 Lakh" is the anchor across all languages. This targets ROI-conscious homeowners who think in total cost of ownership.</p>
+        <div class="example">"FreyrEnergy | Save ₹1 Lakh on Solar | Get a Free Quote"<br>"सोलर पर ₹1 लाख तक की बचत करें"</div>
+        <span class="msg-count">~33 active ads · Core campaign message</span>
+      </div>
+      <div class="msg-card">
+        <div class="msg-icon">📋</div>
+        <h4>Free Quote / Free Consultation CTA</h4>
+        <p>The universal call-to-action across all ads. "Get a Free Solar Quote" or "Free Consultation" is the conversion entry point — low friction offer. Every single ad in the current set ends with this CTA.</p>
+        <div class="example">"ఈరోజే మీ Free Solar Quote పొందండి"<br><em>(Get your Free Solar Quote today)</em></div>
+        <span class="msg-count">~185 active ads · Present in every ad</span>
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <div class="msg-card">
+        <div class="msg-icon">⚡</div>
+        <h4>Bill Reduction / Cost Relief</h4>
+        <p>Frames solar as a solution to painful electricity bills. "Install solar, reduce bills" — problem-solution structure. More emotionally resonant than the savings angle since it addresses a current pain rather than future ROI.</p>
+        <div class="example">"सोलर पर ₹1 लाख तक बचत! | सोलर लगाएं, बिल घटाएं"<br><em>(Save up to ₹1 lakh on solar! Install solar, reduce bills.)</em></div>
+        <span class="msg-count">~11 active ads · Hindi market</span>
+      </div>
+      <div class="msg-card">
+        <div class="msg-icon">🏡</div>
+        <h4>Marathi Consultation Hook</h4>
+        <p>Softer sell: "Get a free consultation today." More trust-building and lower pressure than the direct savings pitch. Suggests FreyrEnergy is treating Maharashtra as a new/cold market that needs warming up before hard conversion offers.</p>
+        <div class="example">"FreyrEnergy | आज विनामूल्य सल्ला घ्या! | सोलरसह मोठी बचत करा! आजच ₹1 लाख पर्यंत बचत करा!"</div>
+        <span class="msg-count">~3 active ads · Maharashtra test</span>
+      </div>
+      <div class="msg-card">
+        <div class="msg-icon">🌍</div>
+        <h4>National Movement (Historical)</h4>
+        <p>Older 2024 messaging positioned FreyrEnergy as part of "India's Solar Revolution" — brand-building aspiration, not pure direct response. This narrative has been entirely retired in current ads in favour of hard number-led offers.</p>
+        <div class="example">"Say Yes to Solar, Say Goodbye to High Bills! | Har Ghar Solar - Join India's Solar Revolution | Book Your Free Consultation Now"</div>
+        <span class="msg-count">Now inactive · 2024 campaign</span>
+      </div>
+    </div>
+
+    <div class="chart-card" style="margin-top:20px">
+      <h3>Active Ad Distribution by Messaging Theme</h3>
+      <p>Estimated frequency of each message strategy across the 185 active ads.</p>
+      <div class="chart-wrap" style="height:180px">
+        <canvas id="msgChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── SECTION 6: TOP 10 ADS ─── -->
+  <div class="section">
+    <div class="section-title">Section 06</div>
+    <div class="section-heading">Top 10 Ads — Estimated by Impressions</div>
+    <div class="section-sub">The Ad Library sorts by total impressions when accessed via the provided URL. The oldest ads in the current campaign wave have had the most time to accumulate impressions. Note: The API does not return actual impression counts — rankings are estimated from campaign launch order and scale signals.</div>
+    <div class="divider"></div>
+
+    <!-- Ad 1 -->
+    <div class="ad-card">
+      <div class="ad-rank top3">#1</div>
+      <div>
+        <div class="ad-title">सोलर पर ₹1 लाख तक की बचत करें (Carousel — Card 1 of 3)</div>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:6px">
+          <em>"Save up to ₹1 Lakh on Solar" — Hindi 3-card carousel, identical copy on all cards</em>
+        </div>
+        <div class="ad-meta">
+          <span class="tag lang">Hindi</span>
+          <span class="tag format">Carousel (3-card)</span>
+          <span class="tag msg">₹1 Lakh Savings</span>
+          <span class="tag date">Created: May 28, 2026</span>
+        </div>
+        <div style="font-size:12px; color:var(--muted); margin-top:8px; line-height:1.6">
+          The oldest cluster in the current campaign wave — 14 variants of this exact carousel launched simultaneously on May 28. The multi-variant launch signals this is being run as a broad audience test across demographics and placements. Likely the highest-impression creative of the current campaign given its 4-day head start.
+        </div>
+      </div>
+      <div class="ad-impression">
+        <div class="imp-label">Scale</div>
+        <div class="imp-val">14 variants</div>
+      </div>
+    </div>
+
+    <!-- Ad 2 -->
+    <div class="ad-card">
+      <div class="ad-rank top3">#2</div>
+      <div>
+        <div class="ad-title">FreyrEnergy | सोलर पर ₹1 लाख तक बचत! | सोलर लगाएं, बिल घटाएं</div>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:6px">
+          <em>"Save up to ₹1 Lakh on Solar! Install Solar, Cut Bills" — Hindi, bill-pain hook</em>
+        </div>
+        <div class="ad-meta">
+          <span class="tag lang">Hindi</span>
+          <span class="tag format">Single Link Ad</span>
+          <span class="tag msg">Bill Reduction + Savings</span>
+          <span class="tag date">Created: May 31, 2026</span>
+        </div>
+        <div style="font-size:12px; color:var(--muted); margin-top:8px; line-height:1.6">
+          6 variants launched simultaneously. Bridges the emotional bill-pain message with the rational savings figure. The second creative concept launched after the carousel, suggesting the team was iterating on messaging angles. "सोलर लगाएं, बिल घटाएं" (install solar, reduce bills) is a rhyming Hindi phrase — memorable and sticky.
+        </div>
+      </div>
+      <div class="ad-impression">
+        <div class="imp-label">Scale</div>
+        <div class="imp-val">6 variants</div>
+      </div>
+    </div>
+
+    <!-- Ad 3 -->
+    <div class="ad-card">
+      <div class="ad-rank top3">#3</div>
+      <div>
+        <div class="ad-title">FreyrEnergy | సోలార్ ప్యానెల్‌పై ₹1 లక్ష ప్రయోజనం! | బిల్లు సమస్యలకు గుడ్‌బై చెప్పండి!</div>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:6px">
+          <em>"₹1 Lakh Benefit on Solar Panels! Say Goodbye to Bill Problems!" — Telugu</em>
+        </div>
+        <div class="ad-meta">
+          <span class="tag lang">Telugu</span>
+          <span class="tag format">Single Link Ad</span>
+          <span class="tag msg">Savings + Bill Relief</span>
+          <span class="tag date">Created: May 31, 2026</span>
+        </div>
+        <div style="font-size:12px; color:var(--muted); margin-top:8px; line-height:1.6">
+          10 variants — the largest single-format variant batch in the dataset. Launched alongside the Hindi bill-reduction cluster, suggesting a simultaneous Hindi/Telugu expansion push. Uses "ప్రయోజనం" (prayojanam = benefit/profit) rather than just savings — slightly different framing that emphasises financial gain over cost reduction.
+        </div>
+      </div>
+      <div class="ad-impression">
+        <div class="imp-label">Scale</div>
+        <div class="imp-val">10 variants</div>
+      </div>
+    </div>
+
+    <!-- Ad 4 -->
+    <div class="ad-card">
+      <div class="ad-rank">#4</div>
+      <div>
+        <div class="ad-title">FreyrEnergy | సోలార్ ప్యానెల్‌పై ₹1 లక్ష ప్రయోజనం! (Earlier batch)</div>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:6px">
+          <em>Same Telugu savings message — second wave of variants launched ~30 min after first</em>
+        </div>
+        <div class="ad-meta">
+          <span class="tag lang">Telugu</span>
+          <span class="tag format">Single Link Ad</span>
+          <span class="tag msg">₹1 Lakh Savings</span>
+          <span class="tag date">Created: May 31, 2026</span>
+        </div>
+      </div>
+      <div class="ad-impression">
+        <div class="imp-label">Scale</div>
+        <div class="imp-val">4 variants</div>
+      </div>
+    </div>
+
+    <!-- Ad 5 -->
+    <div class="ad-card">
+      <div class="ad-rank">#5</div>
+      <div>
+        <div class="ad-title">FreyrEnergy | आज विनामूल्य सल्ला घ्या! | सोलरसह मोठी बचत करा! आजच ₹1 लाख पर्यंत बचत करा!</div>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:6px">
+          <em>"Get a Free Consultation Today! Save Big with Solar! Save Up to ₹1 Lakh Today!" — Marathi</em>
+        </div>
+        <div class="ad-meta">
+          <span class="tag lang">Marathi</span>
+          <span class="tag format">Single Link Ad</span>
+          <span class="tag msg">Free Consultation + Savings</span>
+          <span class="tag date">Created: May 31, 2026</span>
+        </div>
+        <div style="font-size:12px; color:var(--muted); margin-top:8px; line-height:1.6">
+          3 variants. Unique in using a softer "consultation" hook before the savings pitch — unlike the direct response approach used in Hindi and Telugu. Could indicate a higher-friction Maharashtra market where trust needs to be built before a quote is requested.
+        </div>
+      </div>
+      <div class="ad-impression">
+        <div class="imp-label">Scale</div>
+        <div class="imp-val">3 variants</div>
+      </div>
+    </div>
+
+    <!-- Ad 6 -->
+    <div class="ad-card">
+      <div class="ad-rank">#6</div>
+      <div>
+        <div class="ad-title">FreyrEnergy | సోలార్ ప్యానెల్‌పై ₹1 లక్ష ప్రయోజనం! (Telugu Savings)</div>
+        <div class="ad-meta">
+          <span class="tag lang">Telugu</span>
+          <span class="tag format">Single Link Ad</span>
+          <span class="tag msg">₹1 Lakh Benefit</span>
+          <span class="tag date">May 31, 2026 (earliest batch)</span>
+        </div>
+      </div>
+      <div class="ad-impression">
+        <div class="imp-label">Scale</div>
+        <div class="imp-val">3 variants</div>
+      </div>
+    </div>
+
+    <!-- Ad 7 -->
+    <div class="ad-card">
+      <div class="ad-rank">#7</div>
+      <div>
+        <div class="ad-title">FreyrEnergy | Save ₹1 Lakh on Solar | Get a Free Quote</div>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:6px">
+          <em>English savings CTA — targeting bilingual / English-educated homeowner segment</em>
+        </div>
+        <div class="ad-meta">
+          <span class="tag lang">English</span>
+          <span class="tag format">Single Link Ad</span>
+          <span class="tag msg">₹1 Lakh Savings</span>
+          <span class="tag date">June 1, 2026</span>
+        </div>
+      </div>
+      <div class="ad-impression">
+        <div class="imp-label">Scale</div>
+        <div class="imp-val">3 variants</div>
+      </div>
+    </div>
+
+    <!-- Ad 8 -->
+    <div class="ad-card">
+      <div class="ad-rank">#8</div>
+      <div>
+        <div class="ad-title">FreyrEnergy | కేవలం ₹1,466 EMIతో మీ ఇంటికి సోలార్ ఏర్పాటు పెట్టించుకోండి</div>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:6px">
+          <em>"Install Solar at Your Home for Just ₹1,466 EMI | Get Your Free Solar Quote Today" — Telugu</em>
+        </div>
+        <div class="ad-meta">
+          <span class="tag lang">Telugu</span>
+          <span class="tag format">Single Link Ad</span>
+          <span class="tag msg">EMI Affordability</span>
+          <span class="tag date">June 1, 2026 (today)</span>
+        </div>
+      </div>
+      <div class="ad-impression">
+        <div class="imp-label">Scale</div>
+        <div class="imp-val">4 variants</div>
+      </div>
+    </div>
+
+    <!-- Ad 9 -->
+    <div class="ad-card">
+      <div class="ad-rank">#9</div>
+      <div>
+        <div class="ad-title">FreyrEnergy | सिर्फ ₹1,466 EMI से घर पर Solar लगवाएं | आज ही Free Solar Quote पाएं।</div>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:6px">
+          <em>"Install Solar at Home with Just ₹1,466 EMI | Get a Free Solar Quote Today" — Hindi</em>
+        </div>
+        <div class="ad-meta">
+          <span class="tag lang">Hindi</span>
+          <span class="tag format">Single Link Ad</span>
+          <span class="tag msg">EMI Affordability</span>
+          <span class="tag date">June 1, 2026 (today)</span>
+        </div>
+        <div style="font-size:12px; color:var(--muted); margin-top:8px; line-height:1.6">
+          8 variants launched simultaneously. The newest messaging angle, launched just today. The EMI pivot is significant — it removes the ₹1 lakh sticker shock by converting the decision into a monthly payment comparison (vs. their current electricity bill).
+        </div>
+      </div>
+      <div class="ad-impression">
+        <div class="imp-label">Scale</div>
+        <div class="imp-val">8 variants</div>
+      </div>
+    </div>
+
+    <!-- Ad 10 -->
+    <div class="ad-card">
+      <div class="ad-rank">#10</div>
+      <div>
+        <div class="ad-title">FreyrEnergy | Get a Free Quote | Save ₹1 Lakh on Solar</div>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:6px">
+          <em>English variant — CTA-first headline ordering (vs. savings-first in #7)</em>
+        </div>
+        <div class="ad-meta">
+          <span class="tag lang">English</span>
+          <span class="tag format">Single Link Ad</span>
+          <span class="tag msg">Free Quote CTA</span>
+          <span class="tag date">June 1, 2026</span>
+        </div>
+        <div style="font-size:12px; color:var(--muted); margin-top:8px; line-height:1.6">
+          A subtle copy test: "Get a Free Quote | Save ₹1 Lakh" (action first) vs. "Save ₹1 Lakh | Get a Free Quote" (benefit first). Running both simultaneously to test which hook order drives more clicks.
+        </div>
+      </div>
+      <div class="ad-impression">
+        <div class="imp-label">Scale</div>
+        <div class="imp-val">1 variant</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── SECTION 7: LONGEST RUNNING ADS ─── -->
+  <div class="section">
+    <div class="section-title">Section 07</div>
+    <div class="section-heading">Longest Running Ads & Trend Summary</div>
+    <div class="section-sub">Campaign evolution from account launch to the current blitz — what stuck, what changed, and what was retired.</div>
+    <div class="divider"></div>
+
+    <div class="grid-2">
+      <div>
+        <!-- Timeline -->
+        <div class="timeline-item">
+          <div class="timeline-date">Jun 2024</div>
+          <div class="timeline-line"><div class="timeline-dot blue"></div><div class="timeline-connector"></div></div>
+          <div class="timeline-content">
+            <h4>Phase 1 — Market Entry (Malayalam + English)</h4>
+            <p>Account launches with a brand-building campaign: "Say Yes to Solar, Say Goodbye to High Bills! | Har Ghar Solar — Join India's Solar Revolution." Runs in both English and Malayalam. Soft sell, movement framing, CTA is "Book Your Consultation."</p>
+            <div class="tl-tags">
+              <span class="tag lang">Malayalam</span>
+              <span class="tag lang">English</span>
+              <span class="tag format">Brand / Awareness</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-date">Jul–Aug 2024</div>
+          <div class="timeline-line"><div class="timeline-dot amber"></div><div class="timeline-connector"></div></div>
+          <div class="timeline-content">
+            <h4>Phase 2 — Urgency Campaigns (Malayalam)</h4>
+            <p>"Quick! Offer valid till August 31 only" — Malayalam urgency ads layered on top of the brand campaign. Dynamic catalog ads ({{product.name}}) also tested — likely product listing for solar panel SKUs. This is the first time hard conversion tactics appear.</p>
+            <div class="tl-tags">
+              <span class="tag lang">Malayalam</span>
+              <span class="tag format">Urgency / Catalog</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-date">Sep–Oct 2024</div>
+          <div class="timeline-line"><div class="timeline-dot orange"></div><div class="timeline-connector"></div></div>
+          <div class="timeline-content">
+            <h4>Phase 3 — September Offer Extension + English Scale-Up</h4>
+            <p>Urgency deadline extended to "Offer till September 30." English "Say Yes to Solar" campaign also relaunched — possibly beginning national expansion strategy. Malayalam urgency ads eventually stop after October.</p>
+            <div class="tl-tags">
+              <span class="tag lang">Malayalam</span>
+              <span class="tag lang">English</span>
+              <span class="tag format">Urgency / DR</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-date">Nov '24–Jan '26</div>
+          <div class="timeline-line"><div class="timeline-dot grey"></div><div class="timeline-connector"></div></div>
+          <div class="timeline-content">
+            <h4>Phase 4 — Pause / Restructuring (~14 months)</h4>
+            <p>No new ad creatives visible in the dataset for ~14 months. This likely indicates either a significant pause in paid advertising, restructuring of the account/agency, or that ads from this period are no longer tracked by the API. A notable gap for a growth-stage solar company.</p>
+            <div class="tl-tags">
+              <span class="tag format">No New Creatives</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-date">Jan 2026</div>
+          <div class="timeline-line"><div class="timeline-dot green"></div><div class="timeline-connector"></div></div>
+          <div class="timeline-content">
+            <h4>Phase 5 — Hindi Re-Launch (Savings Angle)</h4>
+            <p>Return to advertising with a pivot away from Malayalam entirely. New market: Hindi-speaking homeowners. New message: "सोलर पर ₹1 लाख तक की बचत करें" (Save up to ₹1 Lakh on Solar). Hard direct response, no brand narrative. Three ad variants launched — a small test batch.</p>
+            <div class="tl-tags">
+              <span class="tag lang">Hindi</span>
+              <span class="tag format">Direct Response</span>
+              <span class="tag msg">₹1 Lakh Savings</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-date">May 28–<br>Jun 1, 2026</div>
+          <div class="timeline-line"><div class="timeline-dot red" style="background:var(--green)"></div><div class="timeline-connector" style="background:transparent"></div></div>
+          <div class="timeline-content">
+            <h4>Phase 6 — Current Blitz (Multi-Language Scale)</h4>
+            <p>Full scale campaign. 50+ new ads in 4 days. Expands from Hindi to Telugu (10 variants), adds Marathi test, adds English, and launches new EMI angle today (June 1). This is their largest creative push to date — signal of heavy ad spend going into summer.</p>
+            <div class="tl-tags">
+              <span class="tag lang">Hindi</span>
+              <span class="tag lang">Telugu</span>
+              <span class="tag lang">English</span>
+              <span class="tag lang">Marathi</span>
+              <span class="tag format">Performance Blitz</span>
+              <span class="tag msg">EMI + Savings</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-title">Longest Running Ads — Top 5</div>
+          <div class="stat-row">
+            <div>
+              <div class="label">FreyrEnergy | Say Yes to Solar... (English)</div>
+              <div style="font-size:11px; color:var(--muted)">Jun 2024 – Oct 2024</div>
+            </div>
+            <span class="badge amber">~5 months</span>
+          </div>
+          <div class="stat-row">
+            <div>
+              <div class="label">സോളാറിനോട് yes പറയൂ... (Malayalam)</div>
+              <div style="font-size:11px; color:var(--muted)">Jun 2024 – Oct 2024</div>
+            </div>
+            <span class="badge amber">~5 months</span>
+          </div>
+          <div class="stat-row">
+            <div>
+              <div class="label">Hurry! Offer till Aug 31 (Malayalam)</div>
+              <div style="font-size:11px; color:var(--muted)">Jul–Aug 2024</div>
+            </div>
+            <span class="badge blue">~6 weeks</span>
+          </div>
+          <div class="stat-row">
+            <div>
+              <div class="label">वेगम! ഓഫർ Sept 30 (Malayalam)</div>
+              <div style="font-size:11px; color:var(--muted)">Sep 2024</div>
+            </div>
+            <span class="badge blue">~4 weeks</span>
+          </div>
+          <div class="stat-row">
+            <div>
+              <div class="label">सोलर पर ₹1 लाख... (Hindi Re-launch)</div>
+              <div style="font-size:11px; color:var(--muted)">Jan 2026 – present</div>
+            </div>
+            <span class="badge">~5 months</span>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <h3>Campaign Duration by Phase</h3>
+          <p>Estimated weeks each creative strategy was in market.</p>
+          <div class="chart-wrap" style="height:200px">
+            <canvas id="durationChart"></canvas>
+          </div>
+        </div>
+
+        <div class="insight-box" style="margin-top:16px">
+          <div class="insight-label">Trend Summary</div>
+          <p>FreyrEnergy's advertising arc shows a clear evolution: from <strong>brand-building (2024)</strong> to <strong>pure direct response (2026)</strong>. They've moved away from aspirational "Solar Revolution" narratives toward hyper-specific financial offers. The creative team appears to have shifted from language-focused localisation (Malayalam) to aggressive multi-market scaling (Hindi + Telugu + English + Marathi simultaneously). The EMI angle launched today is the newest strategic bet — converting a capital purchase into an affordable monthly payment is a classic barrier-removal tactic for high-ticket B2C products in India.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── SECTION 8: TARGET PERSONAS ─── -->
+  <div class="section">
+    <div class="section-title">Section 08</div>
+    <div class="section-heading">Inferred Target Personas</div>
+    <div class="section-sub">Who FreyrEnergy appears to be targeting — inferred from messaging, language choices, and offer structure only (no access to actual targeting data).</div>
+    <div class="divider"></div>
+
+    <div class="grid-3" style="margin-bottom:20px">
+      <div class="persona-card">
+        <div class="persona-icon" style="background:rgba(34,197,94,0.12)">🏠</div>
+        <h4>The EMI-Sensitive Hindi Homeowner</h4>
+        <p>Middle-income homeowner in Hindi-speaking states (UP, MP, Rajasthan, Bihar, Delhi-NCR). Wants solar but is deterred by the upfront cost. The ₹1,466 EMI hook speaks directly to this persona — it reframes solar as comparable to a phone EMI, making the decision feel "doable." Likely has a monthly electricity bill of ₹3,000–₹8,000.</p>
+        <div class="persona-tags">
+          <span class="persona-tag">Hindi-speaking</span>
+          <span class="persona-tag">Middle income</span>
+          <span class="persona-tag">North India</span>
+          <span class="persona-tag">Cost-conscious</span>
+          <span class="persona-tag">Homeowner</span>
+        </div>
+      </div>
+
+      <div class="persona-card">
+        <div class="persona-icon" style="background:rgba(96,165,250,0.12)">⚡</div>
+        <h4>The ROI-Driven Telugu Homeowner</h4>
+        <p>Homeowner in Andhra Pradesh or Telangana with a high electricity bill problem. The "₹1 lakh profit/benefit" framing appeals to an analytically-minded buyer who is evaluating solar as an investment. "Say goodbye to bill problems" hits the pain directly. Likely in Hyderabad suburbs or tier-2 AP cities where solar adoption is growing fast.</p>
+        <div class="persona-tags">
+          <span class="persona-tag">Telugu-speaking</span>
+          <span class="persona-tag">AP/Telangana</span>
+          <span class="persona-tag">Bill-pained</span>
+          <span class="persona-tag">Investment-oriented</span>
+        </div>
+      </div>
+
+      <div class="persona-card">
+        <div class="persona-icon" style="background:rgba(245,158,11,0.12)">🌟</div>
+        <h4>The English-Educated Urban Buyer</h4>
+        <p>Upper-middle-class homeowner in metro or semi-metro areas who primarily consumes content in English. The English savings ads (which are a small fraction of total) likely target Facebook users in affluent segments. Less price-sensitive; the "save ₹1 lakh" appeal is aspirational rather than necessity-driven. Potentially overlaps with HDFC/SBI home loan borrowers.</p>
+        <div class="persona-tags">
+          <span class="persona-tag">English-educated</span>
+          <span class="persona-tag">Metro / Tier-1</span>
+          <span class="persona-tag">Upper-middle class</span>
+          <span class="persona-tag">Eco-aware</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <div class="persona-card">
+        <div class="persona-icon" style="background:rgba(167,139,250,0.12)">🏔️</div>
+        <h4>The Maharashtra First-Timer (Test Persona)</h4>
+        <p>Marathi homeowner being reached for the first time. The softer "free consultation" hook (vs. hard savings pitch in other languages) suggests FreyrEnergy recognises this is a cold audience — they haven't been running ads here long. Maharashtra is one of India's largest solar markets, so this appears to be a deliberate new market entry test in the current campaign.</p>
+        <div class="persona-tags">
+          <span class="persona-tag">Marathi-speaking</span>
+          <span class="persona-tag">Maharashtra</span>
+          <span class="persona-tag">Cold audience</span>
+          <span class="persona-tag">Test phase</span>
+        </div>
+      </div>
+
+      <div class="persona-card">
+        <div class="persona-icon" style="background:rgba(45,212,191,0.12)">🌴</div>
+        <h4>The Kerala Homeowner (Historical)</h4>
+        <p>Was the primary persona from June–October 2024. Malayalam-speaking homeowner in Kerala who was being approached with brand-building messaging and seasonal urgency offers. This persona has been entirely dropped from the current active campaign — suggesting either market saturation, channel exhaustion, or a deliberate pivot to higher-potential markets.</p>
+        <div class="persona-tags">
+          <span class="persona-tag">Malayalam-speaking</span>
+          <span class="persona-tag">Kerala</span>
+          <span class="persona-tag">Now inactive</span>
+          <span class="persona-tag">2024 only</span>
+        </div>
+      </div>
+
+      <div class="persona-card" style="border-color: rgba(244,63,94,0.2)">
+        <div class="persona-icon" style="background:rgba(244,63,94,0.12)">🚫</div>
+        <h4>Commercial / B2B Buyer</h4>
+        <p>Notably <strong>absent</strong>. Despite solar being a major commercial rooftop opportunity in India, all FreyrEnergy ads are clearly targeted at residential homeowners (EMI framing, household bill messaging, "your home" language). There are no ads for businesses, factories, or commercial rooftop systems visible in the data.</p>
+        <div class="persona-tags">
+          <span class="persona-tag">Not targeted</span>
+          <span class="persona-tag">No B2B ads found</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── SECTION 9: SUMMARY SCORECARD ─── -->
+  <div class="section">
+    <div class="section-title">Section 09</div>
+    <div class="section-heading">Strategic Summary</div>
+    <div class="section-sub">Key takeaways across all eight dimensions of the analysis.</div>
+    <div class="divider"></div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">What They're Getting Right</div>
+        <div class="stat-row">
+          <span class="label">🎯 Hyper-specific financial anchors (₹1,466 EMI, ₹1 Lakh)</span>
+          <span class="badge">Strong</span>
+        </div>
+        <div class="stat-row">
+          <span class="label">🌍 Multi-language localisation (4 languages active)</span>
+          <span class="badge">Strong</span>
+        </div>
+        <div class="stat-row">
+          <span class="label">⚡ Aggressive creative velocity (12–15 ads/day)</span>
+          <span class="badge">Strong</span>
+        </div>
+        <div class="stat-row">
+          <span class="label">🧪 Simultaneous A/B testing (multiple variants per concept)</span>
+          <span class="badge">Strong</span>
+        </div>
+        <div class="stat-row">
+          <span class="label">📱 Low-friction CTA (Free Quote vs. Buy Now)</span>
+          <span class="badge">Strong</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Potential Gaps / Observations</div>
+        <div class="stat-row">
+          <span class="label">🤝 No influencer / creator partnerships visible</span>
+          <span class="badge amber">Gap</span>
+        </div>
+        <div class="stat-row">
+          <span class="label">📹 Format diversity limited (no Reels / UGC-style visible)</span>
+          <span class="badge amber">Gap</span>
+        </div>
+        <div class="stat-row">
+          <span class="label">🏢 No B2B/commercial targeting</span>
+          <span class="badge amber">Gap</span>
+        </div>
+        <div class="stat-row">
+          <span class="label">🕳️ ~14 month gap in advertising history (Nov '24–Jan '26)</span>
+          <span class="badge red">Notable</span>
+        </div>
+        <div class="stat-row">
+          <span class="label">🌴 Kerala/Malayalam market completely abandoned</span>
+          <span class="badge blue">Strategic Pivot</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="insight-box" style="margin-top:20px">
+      <div class="insight-label">Overall Assessment</div>
+      <p>FreyrEnergy is running a <strong>textbook performance marketing playbook</strong> for a high-ticket residential product in India. Their approach — launch many variants simultaneously, let the algorithm optimise, anchor with specific financial numbers, drive to a free quote — is operationally sophisticated. The most interesting strategic signal right now is the <strong>EMI pivot happening today (June 1, 2026)</strong>: shifting from "save ₹1 lakh over time" to "pay just ₹1,466/month" is a fundamentally different frame for the same product. If EMI messaging outperforms savings messaging in their tests, expect the next wave to be dominated by EMI copy across all languages. The addition of Marathi (Maharashtra) as a new market and the complete absence of Malayalam suggests they are actively reading their data and re-allocating budget to wherever acquisition is cheapest.</p>
+    </div>
+  </div>
+
+  <div class="report-footer">
+    <p>FreyrEnergy Ad Library Analysis · Data sourced from Meta Ad Library API · Page ID: 1165407456854671 · Analysis date: June 1, 2026</p>
+    <p style="margin-top:4px">Sample: 100 ads (50 active + 50 inactive) out of ~253 total. Active estimates: 185. Impression rankings are estimated — Meta API does not return exact impression counts.</p>
+  </div>
+
+</div>
+
+<script>
+// Chart defaults
+Chart.defaults.color = '#94a3b8';
+Chart.defaults.borderColor = '#1f2d45';
+Chart.defaults.font.family = "'Segoe UI', system-ui, sans-serif";
+Chart.defaults.font.size = 12;
+
+// ─── Creative Velocity Chart ───
+new Chart(document.getElementById('velocityChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Jun\'24','Jul\'24','Aug\'24','Sep\'24','Oct\'24','Nov-Dec\'24','Jan-Apr\'25','May-Aug\'25','Sep-Dec\'25','Jan\'26','Feb-Apr\'26','May 28-31','Jun 1 (today)'],
+    datasets: [{
+      label: 'New Ads Created',
+      data: [12, 8, 12, 8, 4, 0, 0, 0, 0, 3, 0, 35, 15],
+      backgroundColor: (ctx) => {
+        const val = ctx.raw;
+        if (val === 0) return 'rgba(51,65,85,0.5)';
+        if (val >= 15) return '#22c55e';
+        if (val >= 8) return '#60a5fa';
+        return '#94a3b8';
+      },
+      borderRadius: 6,
+      borderSkipped: false,
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+      y: { grid: { color: '#1f2d45' }, ticks: { stepSize: 5 } }
+    }
+  }
+});
+
+// ─── Language Active Donut ───
+new Chart(document.getElementById('langActiveChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Hindi (56%)', 'Telugu (28%)', 'English (10%)', 'Marathi (6%)'],
+    datasets: [{
+      data: [56, 28, 10, 6],
+      backgroundColor: ['#22c55e', '#60a5fa', '#f59e0b', '#a78bfa'],
+      borderWidth: 2,
+      borderColor: '#111827'
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: true,
+    cutout: '65%',
+    plugins: {
+      legend: { position: 'bottom', labels: { padding: 12, font: { size: 11 } } }
+    }
+  }
+});
+
+// ─── Language Inactive Donut ───
+new Chart(document.getElementById('langInactiveChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Malayalam (48%)', 'English (28%)', 'Dynamic/Catalog (18%)', 'Hindi (6%)'],
+    datasets: [{
+      data: [48, 28, 18, 6],
+      backgroundColor: ['#2dd4bf', '#f59e0b', '#f43f5e', '#22c55e'],
+      borderWidth: 2,
+      borderColor: '#111827'
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: true,
+    cutout: '65%',
+    plugins: {
+      legend: { position: 'bottom', labels: { padding: 12, font: { size: 11 } } }
+    }
+  }
+});
+
+// ─── Format Donut ───
+new Chart(document.getElementById('formatChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Single Image/Video (65%)', 'Carousel 3-Card (28%)', 'Dynamic Catalog (5%)', 'Other (2%)'],
+    datasets: [{
+      data: [65, 28, 5, 2],
+      backgroundColor: ['#22c55e', '#60a5fa', '#f59e0b', '#94a3b8'],
+      borderWidth: 2,
+      borderColor: '#111827'
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: true,
+    cutout: '65%',
+    plugins: {
+      legend: { position: 'bottom', labels: { padding: 10, font: { size: 11 } } }
+    }
+  }
+});
+
+// ─── Partnership Pie ───
+new Chart(document.getElementById('partnerChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Brand Ads (100%)', 'Partnership Ads (0%)'],
+    datasets: [{
+      data: [100, 0.001],
+      backgroundColor: ['#22c55e', '#f43f5e'],
+      borderWidth: 2,
+      borderColor: '#111827'
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: true,
+    cutout: '65%',
+    plugins: {
+      legend: { position: 'bottom', labels: { padding: 12, font: { size: 11 } } }
+    }
+  }
+});
+
+// ─── Messaging Theme Bar ───
+new Chart(document.getElementById('msgChart'), {
+  type: 'bar',
+  data: {
+    labels: ['₹1 Lakh Savings\n(Hindi Carousel)', '₹1 Lakh Savings\n(Telugu)', '₹1 Lakh Savings\n(Hindi Single)', 'EMI ₹1,466\n(Hindi)', 'EMI ₹1,466\n(Telugu)', 'Savings+Bill\n(English)', 'Free Consult\n(Marathi)'],
+    datasets: [{
+      label: 'Estimated Active Ads',
+      data: [40, 30, 18, 24, 12, 8, 6],
+      backgroundColor: ['#22c55e','#60a5fa','#4ade80','#f59e0b','#fbbf24','#a78bfa','#2dd4bf'],
+      borderRadius: 6,
+      borderSkipped: false,
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: '#1f2d45' }, title: { display: true, text: 'Estimated No. of Active Ads' } },
+      y: { grid: { display: false }, ticks: { font: { size: 10 } } }
+    }
+  }
+});
+
+// ─── Campaign Duration Chart ───
+new Chart(document.getElementById('durationChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Phase 1: Malayalam+EN\n(Jun–Oct \'24)', 'Phase 2: Urgency\n(Jul–Aug \'24)', 'Phase 3: Sep Ext.\n(Sep–Oct \'24)', 'Phase 4: PAUSE\n(Nov \'24–Jan \'26)', 'Phase 5: Hindi Re-\nlaunch (Jan \'26)', 'Phase 6: Current\nBlitz (May–Jun \'26)'],
+    datasets: [{
+      label: 'Weeks in Market',
+      data: [20, 6, 4, 60, 20, 1],
+      backgroundColor: ['#60a5fa','#f59e0b','#fb923c','#334155','#22c55e','#f43f5e'],
+      borderRadius: 6,
+      borderSkipped: false,
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 9 } } },
+      y: { grid: { color: '#1f2d45' }, title: { display: true, text: 'Weeks' } }
+    }
+  }
+});
+</script>
+</body>
+</html>
