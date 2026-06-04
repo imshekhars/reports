@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SolarSquare Energy — Facebook Ad Library Analysis</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #f0f4f8; color: #1a202c; line-height: 1.6; }
+  .report-header { background: linear-gradient(135deg, #1a365d 0%, #2d6a4f 100%); color: white; padding: 48px 40px; }
+  .report-header h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 8px; }
+  .report-header .subtitle { opacity: 0.85; font-size: 1.05rem; margin-bottom: 24px; }
+  .header-meta { display: flex; gap: 32px; flex-wrap: wrap; }
+  .meta-item { background: rgba(255,255,255,0.15); border-radius: 10px; padding: 12px 20px; }
+  .meta-item .label { font-size: 0.75rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.05em; }
+  .meta-item .value { font-size: 1.6rem; font-weight: 700; }
+  .container { max-width: 1400px; margin: 0 auto; padding: 32px 24px; }
+  .section { margin-bottom: 40px; }
+  .section-title { font-size: 1.4rem; font-weight: 700; color: #1a365d; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 3px solid #2d6a4f; display: flex; align-items: center; gap: 10px; }
+  .section-title .icon { font-size: 1.5rem; }
+  .card { background: white; border-radius: 14px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .chart-container { position: relative; height: 300px; }
+  .chart-container-lg { position: relative; height: 380px; }
+  .stat-card { background: white; border-radius: 14px; padding: 20px 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); text-align: center; }
+  .stat-card .stat-label { font-size: 0.8rem; color: #718096; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  .stat-card .stat-value { font-size: 2.2rem; font-weight: 800; color: #1a365d; }
+  .stat-card .stat-sub { font-size: 0.8rem; color: #718096; margin-top: 4px; }
+  .stat-card.accent-green .stat-value { color: #2d6a4f; }
+  .stat-card.accent-orange .stat-value { color: #c05621; }
+  .stat-card.accent-blue .stat-value { color: #2b6cb0; }
+  .ad-card { background: white; border-radius: 14px; padding: 22px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); border-left: 5px solid #2d6a4f; margin-bottom: 20px; }
+  .ad-card .ad-rank { background: #2d6a4f; color: white; border-radius: 50%; width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; margin-right: 12px; flex-shrink: 0; }
+  .ad-header { display: flex; align-items: center; margin-bottom: 14px; }
+  .ad-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.78rem; padding: 4px 10px; border-radius: 20px; font-weight: 600; }
+  .badge-video { background: #ebf8ff; color: #2b6cb0; }
+  .badge-static { background: #f0fff4; color: #276749; }
+  .badge-lang { background: #fef3c7; color: #92400e; }
+  .badge-days { background: #ede9fe; color: #5b21b6; }
+  .badge-cta { background: #fff5f5; color: #c53030; }
+  .badge-theme { background: #e6fffa; color: #234e52; }
+  .ad-copy { background: #f7fafc; border-radius: 8px; padding: 14px; font-size: 0.88rem; color: #2d3748; line-height: 1.7; border-left: 3px solid #cbd5e0; }
+  .ad-title-text { font-size: 1rem; font-weight: 700; color: #1a202c; }
+  .theme-pill { display: inline-block; background: #e2e8f0; color: #4a5568; font-size: 0.77rem; padding: 3px 10px; border-radius: 12px; margin: 3px 2px; }
+  .theme-pill.hot { background: #fed7d7; color: #c53030; }
+  .theme-pill.warm { background: #feebc8; color: #c05621; }
+  .theme-pill.cool { background: #bee3f8; color: #2c5282; }
+  .theme-pill.green { background: #c6f6d5; color: #22543d; }
+  table { width: 100%; border-collapse: collapse; }
+  th { background: #1a365d; color: white; padding: 12px 16px; text-align: left; font-size: 0.85rem; }
+  td { padding: 11px 16px; font-size: 0.88rem; border-bottom: 1px solid #e2e8f0; }
+  tr:hover td { background: #f7fafc; }
+  tr:last-child td { border-bottom: none; }
+  .insight-box { background: linear-gradient(135deg, #e6fffa, #f0fff4); border: 1px solid #9ae6b4; border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; }
+  .insight-box h4 { color: #22543d; font-size: 1rem; margin-bottom: 8px; }
+  .insight-box p { color: #2d3748; font-size: 0.9rem; }
+  .insight-box.blue { background: linear-gradient(135deg, #ebf8ff, #e6fffa); border-color: #90cdf4; }
+  .insight-box.blue h4 { color: #1e4e8c; }
+  .insight-box.orange { background: linear-gradient(135deg, #fffbeb, #fff3e0); border-color: #fbd38d; }
+  .insight-box.orange h4 { color: #7b341e; }
+  .persona-card { background: white; border-radius: 14px; padding: 22px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); border-top: 4px solid #f6ad55; }
+  .persona-name { font-size: 1.1rem; font-weight: 700; color: #1a202c; margin-bottom: 4px; }
+  .persona-desc { font-size: 0.88rem; color: #718096; margin-bottom: 12px; }
+  .persona-trait { display: flex; align-items: flex-start; gap: 8px; margin: 6px 0; font-size: 0.88rem; }
+  .persona-trait .icon { color: #f6ad55; font-size: 1rem; flex-shrink: 0; margin-top: 2px; }
+  .trend-item { display: flex; gap: 16px; padding: 14px 0; border-bottom: 1px solid #e2e8f0; }
+  .trend-item:last-child { border-bottom: none; }
+  .trend-rank { background: #1a365d; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; flex-shrink: 0; }
+  .velocity-bar { display: flex; align-items: center; gap: 12px; margin: 8px 0; }
+  .velocity-bar-inner { height: 20px; border-radius: 4px; background: linear-gradient(90deg, #2d6a4f, #48bb78); transition: width 0.3s; }
+  .velocity-bar-label { min-width: 130px; font-size: 0.85rem; color: #4a5568; }
+  .velocity-bar-count { font-size: 0.85rem; color: #718096; }
+  .footnote { background: #edf2f7; border-radius: 10px; padding: 16px 20px; margin-top: 40px; font-size: 0.82rem; color: #718096; }
+  @media (max-width: 900px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } }
+  .scrollable-table { overflow-x: auto; }
+  .partner-note { background: #fef3c7; border: 1px solid #f6ad55; border-radius: 12px; padding: 18px 22px; }
+</style>
+</head><body>
+<div class="report-header">
+  <h1>☀️ SolarSquare Energy — Ad Library Analysis</h1>
+  <p class="subtitle">Facebook Ad Library Deep Dive · India · Active Ads · Sorted by Total Impressions</p>
+  <div class="header-meta">
+    <div class="meta-item"><div class="label">Total Active Ads</div><div class="value">~440</div></div>
+    <div class="meta-item"><div class="label">Ads Analyzed</div><div class="value">294</div></div>
+    <div class="meta-item"><div class="label">Page Created</div><div class="value">Apr 2020</div></div>
+    <div class="meta-item"><div class="label">Report Date</div><div class="value">Jun 4, 2026</div></div>
+    <div class="meta-item"><div class="label">Instagram Followers</div><div class="value">154.5K</div></div>
+    <div class="meta-item"><div class="label">Facebook Followers</div><div class="value">33.5K</div></div>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- KPI CARDS -->
+<div class="section">
+  <div class="grid-4">
+    <div class="stat-card accent-green">
+      <div class="stat-label">Video Ads</div>
+      <div class="stat-value">202</div>
+      <div class="stat-sub">69% of total</div>
+    </div>
+    <div class="stat-card accent-blue">
+      <div class="stat-label">Static/Image Ads</div>
+      <div class="stat-value">92</div>
+      <div class="stat-sub">31% of total</div>
+    </div>
+    <div class="stat-card accent-orange">
+      <div class="stat-label">Avg Video Duration</div>
+      <div class="stat-value">50s</div>
+      <div class="stat-sub">range: 6s–120s</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Languages Active</div>
+      <div class="stat-value">6</div>
+      <div class="stat-sub">EN, HI, MR, GU, TA, TE</div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 1: FORMAT BREAKDOWN -->
+<div class="section">
+  <div class="section-title"><span class="icon">🎬</span> 1. Format Breakdown</div>
+  <div class="grid-2">
+    <div class="card">
+      <h3 style="margin-bottom:16px; color:#1a365d;">Ad Format Distribution</h3>
+      <div class="chart-container"><canvas id="formatChart"></canvas></div>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:16px; color:#1a365d;">Video Duration Breakdown</h3>
+      <div class="chart-container"><canvas id="durationChart"></canvas></div>
+    </div>
+  </div>
+  <div style="margin-top:20px;" class="grid-3">
+    <div class="insight-box">
+      <h4>🎥 Video-First Strategy</h4>
+      <p>SolarSquare runs 69% of ads as video, betting heavily on motion content to drive awareness and engagement. The majority (44%) are 30–60s "explainer-length" videos — long enough to educate but short enough to hold attention in-feed.</p>
+    </div>
+    <div class="insight-box blue">
+      <h4>📸 Static for Reach</h4>
+      <p>Static image ads (31%) are primarily used for link-click campaigns with FB.ME or direct landing page links. They typically carry the "Breaking News" visual treatment or government subsidy infographic format.</p>
+    </div>
+    <div class="insight-box orange">
+      <h4>📲 Platforms</h4>
+      <p>Ads run primarily across Facebook and Instagram. A subset extends to Messenger (Audience Network). No TikTok or YouTube placements visible in library data.</p>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 2: BRAND VS PARTNERSHIP ADS -->
+<div class="section">
+  <div class="section-title"><span class="icon">🤝</span> 2. Brand Ads vs. Partnership Ads</div>
+  <div class="grid-2">
+    <div class="card">
+      <h3 style="margin-bottom:16px; color:#1a365d;">Brand vs. Partnership Distribution</h3>
+      <div class="chart-container"><canvas id="partnerChart"></canvas></div>
+    </div>
+    <div class="card" style="display:flex; flex-direction:column; justify-content:center;">
+      <div class="partner-note" style="margin-bottom:16px;">
+        <strong>🔍 No Formal Creator Partnership Ads Detected</strong><br><br>
+        Across all 294 active ads analyzed, <strong>zero ads carry a "Paid Partnership with [creator]" label</strong> in the Ad Library. The Branded Content section of Meta's Ad Library — which would show creator-tagged partnership posts — returned no results for SolarSquare Energy's page ID.
+      </div>
+      <div class="insight-box">
+        <h4>What this means:</h4>
+        <p>SolarSquare is running a 100% owned/brand media strategy. All ads are served directly from their brand page with no formal influencer partnerships declared through Meta's branded content system. Their creative does feature <em>testimonial-style</em> content and one verified customer story (Rajendra Garg), but these are produced in-house, not through creator partnerships.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 3: CORE MESSAGING STRATEGIES -->
+<div class="section">
+  <div class="section-title"><span class="icon">💬</span> 3. Core Messaging Strategies</div>
+  <div class="card" style="margin-bottom:20px;">
+    <h3 style="margin-bottom:16px; color:#1a365d;">Messaging Theme Frequency (of 294 active ads)</h3>
+    <div class="chart-container-lg"><canvas id="messagingChart"></canvas></div>
+  </div>
+  <div class="grid-3">
+    <div class="insight-box green">
+      <h4>💰 Pillar 1: The "₹0 Entry Point"</h4>
+      <p>The dominant narrative across <strong>72+ ads</strong> is zero upfront investment. The formula: "Government subsidy covers your downpayment, your bill savings cover your EMI." This removes the #1 objection (cost) entirely. It's used in English, Hindi, Marathi, and Tamil.</p>
+    </div>
+    <div class="insight-box orange">
+      <h4>🏛️ Pillar 2: Government Subsidy Urgency</h4>
+      <p><strong>109 ads</strong> (37%) explicitly mention the ₹1,08,000 government subsidy. SolarSquare uses this as a "money on the table" urgency trigger — framing inaction as leaving cash uncollected. The "Breaking News" creative hook (5 ads) also leads with this.</p>
+    </div>
+    <div class="insight-box blue">
+      <h4>⚡ Pillar 3: 90% Bill Reduction</h4>
+      <p><strong>87 ads</strong> lead with the 90% electricity bill cut claim. Often paired with AC usage — "Run your AC all summer, forget the bill." This anchors the solar promise to an immediate, relatable pain point (high electricity bills).</p>
+    </div>
+    <div class="insight-box">
+      <h4>📅 Pillar 4: Free Consultation Funnel</h4>
+      <p><strong>156 ads</strong> (53%) end with a "Book your FREE consultation" CTA. This is the universal conversion mechanism. "Get Quote" is the most common button (97 uses), followed by "Book Now" (116 combined).</p>
+    </div>
+    <div class="insight-box green">
+      <h4>🏆 Pillar 5: India's #1 Brand</h4>
+      <p><strong>20 ads</strong> explicitly claim "#1 solar company in India." Used primarily in Marathi and English to establish trust with fence-sitters. Paired with "30,000+ homes installed" social proof.</p>
+    </div>
+    <div class="insight-box orange">
+      <h4>🌀 Pillar 6: Safety / WindPro™</h4>
+      <p><strong>9 ads</strong> (mostly Gujarati-targeted) lead with the WindPro™ mount — a cyclone-proof, 170 kmph-rated structure. This is a product differentiation play likely driven by Gujarat's coastal/storm exposure. It targets safety-conscious homeowners.</p>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 4: TARGET PERSONAS -->
+<div class="section">
+  <div class="section-title"><span class="icon">👥</span> 4. Target Audience Personas</div>
+  <p style="color:#718096; margin-bottom:20px; font-size:0.92rem;">Inferred from ad copy themes, languages, geographic references, and emotional hooks — not from declared targeting data.</p>
+  <div class="grid-2">
+    <div class="persona-card">
+      <div class="persona-name">🏠 The Cost-Conscious Homeowner</div>
+      <div class="persona-desc">Primary target · Hindi/Marathi/English ads · Urban & Tier-2 cities</div>
+      <div class="persona-trait"><span class="icon">●</span><span>Middle-class homeowner aged 35–55 with high monthly electricity bills (₹5,000–₹15,000+), often running ACs in summer</span></div>
+      <div class="persona-trait"><span class="icon">●</span><span>Primary fear: "Solar is too expensive upfront." Primary desire: cut the electricity bill without a large cash outlay</span></div>
+      <div class="persona-trait"><span class="icon">●</span><span>Ads targeting them: "0 investment," "EMI covered by savings," "90% bill reduction" — entirely financial framing</span></div>
+      <div class="persona-trait"><span class="icon">●</span><span>CTA: "Get Quote" or "Book a Free Consultation" — low-commitment entry</span></div>
+    </div>
+    <div class="persona-card" style="border-top-color: #68d391;">
+      <div class="persona-name">🌞 The Subsidy-Seeker</div>
+      <div class="persona-desc">High-intent segment · Hindi/Marathi/Tamil/Telugu ads</div>
+      <div class="persona-trait"><span class="icon">●</span><span>Already aware of PM Surya Ghar scheme. Wants to claim ₹1,08,000 subsidy but unsure how. Looking for a trusted executor</span></div>
+      <div class="persona-trait"><span class="icon">●</span><span>Ads: "Breaking News — Turn your rooftop into a GOLDMINE" and "Earn up to ₹1,08,000 in government subsidy"</span></div>
+      <div class="persona-trait"><span class="icon">●</span><span>Decision driver: speed + trustworthiness. SolarSquare positions itself as the safest hands to navigate the subsidy process</span></div>
+      <div class="persona-trait"><span class="icon">●</span><span>Likely skews older (50+), owns home outright, financially cautious, responds to "official" / "news" framing</span></div>
+    </div>
+    <div class="persona-card" style="border-top-color: #f6ad55;">
+      <div class="persona-name">🌀 The Gujarat / Coastal Safety-Buyer</div>
+      <div class="persona-desc">Regional niche · Gujarati-language ads</div>
+      <div class="persona-trait"><span class="icon">●</span><span>Homeowner in cyclone-prone regions (Gujarat coast). Primary fear: roof damage during storm. Solar quality & structural safety is the deciding factor</span></div>
+      <div class="persona-trait"><span class="icon">●</span><span>Ads: WindPro™ mount, "cyclone-proof," "withstands 170 kmph winds," "30,000+ homes trusted"</span></div>
+      <div class="persona-trait"><span class="icon">●</span><span>Messaging is entirely differentiation-led — quality over savings — suggesting SolarSquare is going premium in this geo</span></div>
+      <div class="persona-trait"><span class="icon">●</span><span>Likely upper-middle class, 40–60 years old, homeowner in city or peri-urban Gujarat</span></div>
+    </div>
+    <div class="persona-card" style="border-top-color: #76e4f7;">
+      <div class="persona-name">💼 The ROI-Driven Investor</div>
+      <div class="persona-desc">Financial angle · English & Hindi</div>
+      <div class="persona-trait"><span class="icon">●</span><span>Compares solar to financial instruments. Interested in the 24% return angle and ₹8/unit ROI framing</span></div>
+      <div class="persona-trait"><span class="icon">●</span><span>Ads: "सोना बोझ बढ़ाए, सोलर दौलत बढ़ाए" (Gold adds burden, Solar builds wealth), "24% returns, lifetime bill savings"</span></div>
+      <div class="persona-trait"><span class="icon">●</span><span>Likely dual-income household, financially literate, 35–50 years old, compares investment options</span></div>
+      <div class="persona-trait"><span class="icon">●</span><span>A smaller but high-value segment — willing to invest more once the math is clear</span></div>
+    </div>
+  </div>
+</div>
+<!-- SECTION 5: TOP 10 ADS BY IMPRESSIONS -->
+<div class="section">
+  <div class="section-title"><span class="icon">🏆</span> 5. Top 10 Ads by Total Impressions</div>
+  <p style="color:#718096; margin-bottom:20px; font-size:0.92rem;">Ranked by Meta's "Total Impressions" sort order. Exact impression counts are not disclosed by Meta for Indian ads, so rank order serves as the proxy.</p>
+
+  <div class="ad-card">
+    <div class="ad-header"><span class="ad-rank">1</span><span class="ad-title-text">WindPro Safety + Guaranteed Savings · Gujarati</span></div>
+    <div class="ad-meta">
+      <span class="badge badge-video">🎬 Video (23s)</span>
+      <span class="badge badge-lang">🇮🇳 Gujarati</span>
+      <span class="badge badge-days">⏱️ 56 days running</span>
+      <span class="badge badge-cta">📲 Book Now</span>
+      <span class="badge badge-theme">🛡️ WindPro / Safety</span>
+      <span class="badge badge-theme">🔒 Guaranteed Savings</span>
+    </div>
+    <div class="ad-copy">Library ID: 1381879523746211 · Started: Apr 9, 2026<br><br>"કોઈ સલામતી કે બચત વિનાના સામાન્ય સોલાર? ના, આભાર. 🙅‍♂️ SolarSquare offers: ✅ WindPro Mount™ — cyclone-proof ✅ Withstands 170 kmph winds ✅ Guaranteed savings &amp; generation ✅ Trusted by 30,000+ homes. 👉 Book your FREE consultation today!"</div>
+    <div style="margin-top:10px; font-size:0.84rem; color:#718096;"><strong>Why it works:</strong> Pure differentiation — addresses quality-anxious buyers in Gujarat. Short (23s) video with punchy checklist format. Safety angle not used by most competitors.</div>
+  </div>
+
+  <div class="ad-card" style="border-left-color: #3182ce;">
+    <div class="ad-header"><span class="ad-rank" style="background:#3182ce;">2</span><span class="ad-title-text">No.1 Brand Trust · Marathi · Static</span></div>
+    <div class="ad-meta">
+      <span class="badge badge-static">🖼️ Static/Image</span>
+      <span class="badge badge-lang">🇮🇳 Marathi</span>
+      <span class="badge badge-days">⏱️ 53 days running</span>
+      <span class="badge badge-cta">📲 Book now</span>
+      <span class="badge badge-theme">🏆 No.1 Brand India</span>
+    </div>
+    <div class="ad-copy">Library ID: 1578880523207682 · Started: Apr 12, 2026<br><br>"🇮🇳 भारतातील नं.1 कंपनीसोबत सोलरचा स्वीकार करा! ✔️ विश्वासार्ह ब्रँड ✔️ उत्कृष्ट दर्जाचे पॅनल्स ✔️ Complete installation-to-maintenance service. 💯 Make the right decision and save long-term. 👉 Book FREE consultation today!"</div>
+    <div style="margin-top:10px; font-size:0.84rem; color:#718096;"><strong>Why it works:</strong> Pure credibility play. Maharashtra is a key market. Marathi-language copy signals local trust. "4 ads use this creative" — proven asset running as a cluster.</div>
+  </div>
+
+  <div class="ad-card" style="border-left-color: #e53e3e;">
+    <div class="ad-header"><span class="ad-rank" style="background:#e53e3e;">3</span><span class="ad-title-text">"सोना vs सोलर" — Investment Reframe · Hindi · Video</span></div>
+    <div class="ad-meta">
+      <span class="badge badge-video">🎬 Video (94s)</span>
+      <span class="badge badge-lang">🇮🇳 Hindi</span>
+      <span class="badge badge-days">⏱️ 62 days running</span>
+      <span class="badge badge-cta">📲 Get Quote</span>
+      <span class="badge badge-theme">📈 24% Returns</span>
+      <span class="badge badge-theme">👨‍👩‍👧 Family Future</span>
+    </div>
+    <div class="ad-copy">Library ID: 1260252472378049 · Started: Apr 3, 2026<br><br>"आपके परिवार के भविष्य के लिए: ✅ सोना बोझ बढ़ाए, सोलर दौलत बढ़ाए। ✅ 24% returns and lifetime bill savings. 👉 Book your FREE consultation today!"</div>
+    <div style="margin-top:10px; font-size:0.84rem; color:#718096;"><strong>Why it works:</strong> Reframes solar as a <em>wealth-building</em> asset vs gold (India's most trusted store of value). 94-second long-form video signals high engagement — these run longer when audiences watch. Family angle broadens appeal.</div>
+  </div>
+
+  <div class="ad-card" style="border-left-color: #805ad5;">
+    <div class="ad-header"><span class="ad-rank" style="background:#805ad5;">4</span><span class="ad-title-text">Subsidy Urgency + Bill Savings · Marathi</span></div>
+    <div class="ad-meta">
+      <span class="badge badge-static">🖼️ Static/Image</span>
+      <span class="badge badge-lang">🇮🇳 Marathi</span>
+      <span class="badge badge-days">⏱️ 27 days running</span>
+      <span class="badge badge-cta">📲 Book now</span>
+      <span class="badge badge-theme">🏛️ Govt Subsidy</span>
+    </div>
+    <div class="ad-copy">Library ID: 2135534293845623 · Started: May 8, 2026<br><br>"अजूनही सोलरकडे स्विच करण्याचा विचार करताय? 😓 With government rooftop solar subsidy, now is the right time ☀️. SolarSquare — save from day one. ✔ Subsidy benefits ✔ Lower electricity bill ✔ Long-term savings"</div>
+    <div style="margin-top:10px; font-size:0.84rem; color:#718096;"><strong>Why it works:</strong> Opens with empathy (hesitation acknowledgment), then deploys urgency via government subsidy timing. Short, punchy, and recent (27 days) — already ranking #4 by impressions suggesting heavy spend.</div>
+  </div>
+
+  <div class="ad-card" style="border-left-color: #dd6b20;">
+    <div class="ad-header"><span class="ad-rank" style="background:#dd6b20;">5</span><span class="ad-title-text">"Breaking News" — GOLDMINE Hook · English · Video</span></div>
+    <div class="ad-meta">
+      <span class="badge badge-video">🎬 Video (33s)</span>
+      <span class="badge badge-lang">🌐 English</span>
+      <span class="badge badge-days">⏱️ 65 days running</span>
+      <span class="badge badge-cta">📲 Get Quote</span>
+      <span class="badge badge-theme">📰 Breaking News Hook</span>
+      <span class="badge badge-theme">🏛️ Govt Subsidy</span>
+    </div>
+    <div class="ad-copy">Library ID: 1521725719289285 · Started: Mar 31, 2026<br><br>"Breaking News! Turn your rooftop into a GOLDMINE! Earn up to ₹1,08,000 in government subsidy. Ready to cash in? Book your FREE consultation now! [90% बिल में कमी]"</div>
+    <div style="margin-top:10px; font-size:0.84rem; color:#718096;"><strong>Why it works:</strong> Pattern-disruption hook ("Breaking News" in a fake news-ticker video frame). Short (33s), English with Hindi proof point (90% bill reduction). One of the longest-running ads (65 days) — proof of strong performance. This is SolarSquare's best-known creative template.</div>
+  </div>
+
+  <div class="ad-card" style="border-left-color: #2b6cb0;">
+    <div class="ad-header"><span class="ad-rank" style="background:#2b6cb0;">6</span><span class="ad-title-text">90% Bill Cut · Marathi · Video</span></div>
+    <div class="ad-meta">
+      <span class="badge badge-video">🎬 Video (58s)</span>
+      <span class="badge badge-lang">🇮🇳 Marathi</span>
+      <span class="badge badge-days">⏱️ 63 days running</span>
+      <span class="badge badge-cta">📲 Get Quote</span>
+      <span class="badge badge-theme">⚡ 90% Bill Reduction</span>
+    </div>
+    <div class="ad-copy">Library ID: 2047562715804029 · Started: Apr 2, 2026<br><br>"तुमचे बिल जास्त येतंय का? आता नाही येणार! 💸⚡ Switch to solar and save up to 90% on your electricity bill! 🌞 Book your FREE consultation today."</div>
+    <div style="margin-top:10px; font-size:0.84rem; color:#718096;"><strong>Why it works:</strong> Opens with a direct pain-point question. "आता नाही येणार" (Now it won't come anymore) gives immediate relief framing. Multiple versions run — this is a core evergreen template in Maharashtra.</div>
+  </div>
+
+  <div class="ad-card" style="border-left-color: #38a169;">
+    <div class="ad-header"><span class="ad-rank" style="background:#38a169;">7</span><span class="ad-title-text">Fast Installation Promise · Hindi · Video</span></div>
+    <div class="ad-meta">
+      <span class="badge badge-video">🎬 Video (94s)</span>
+      <span class="badge badge-lang">🇮🇳 Hindi</span>
+      <span class="badge badge-days">⏱️ 65 days running</span>
+      <span class="badge badge-cta">📲 Get Quote</span>
+      <span class="badge badge-theme">⚡ Speed / Installation</span>
+    </div>
+    <div class="ad-copy">Library ID: 1306017914723930 · Started: Mar 31, 2026<br><br>"बाकी हफ्तों लगाते हैं — हम घंटों में घर रोशन कर देते हैं। क्योंकि आपकी बचत को इंतज़ार नहीं करना चाहिए। (Others take weeks — we light up your home in hours. Because your savings shouldn't wait.)"</div>
+    <div style="margin-top:10px; font-size:0.84rem; color:#718096;"><strong>Why it works:</strong> Competitive differentiation — directly attacks slow competitors. The phrase "your savings shouldn't wait" creates urgency through loss aversion. 94s format suggests it's a highly engaging long-form testimonial or explainer.</div>
+  </div>
+
+  <div class="ad-card" style="border-left-color: #e2a908;">
+    <div class="ad-header"><span class="ad-rank" style="background:#e2a908;">8</span><span class="ad-title-text">90% Bill Cut · Marathi · Variant 2</span></div>
+    <div class="ad-meta">
+      <span class="badge badge-video">🎬 Video (63s)</span>
+      <span class="badge badge-lang">🇮🇳 Marathi</span>
+      <span class="badge badge-days">⏱️ 65 days running</span>
+      <span class="badge badge-cta">📲 Get Quote</span>
+      <span class="badge badge-theme">⚡ 90% Bill Reduction</span>
+    </div>
+    <div class="ad-copy">Library ID: 914326674820894 · Started: Mar 31, 2026<br><br>"तुमचे बिल जास्त येतंय का? आता नाही येणार! 💸⚡ Switch to solar and save up to 90% on your electricity bill! 🌞 Book your FREE consultation today." (Variant with different video length — likely A/B test on creative)</div>
+    <div style="margin-top:10px; font-size:0.84rem; color:#718096;"><strong>Why it works:</strong> Near-identical to #6 but with a 63s version. This is a classic multi-variant strategy — same messaging, different video cuts. Running simultaneously for 65 days signals this is a confirmed winner.</div>
+  </div>
+
+  <div class="ad-card" style="border-left-color: #553c9a;">
+    <div class="ad-header"><span class="ad-rank" style="background:#553c9a;">9</span><span class="ad-title-text">₹0 Investment — EMI Covered · Hindi · Static</span></div>
+    <div class="ad-meta">
+      <span class="badge badge-static">🖼️ Static/Image</span>
+      <span class="badge badge-lang">🇮🇳 Hindi</span>
+      <span class="badge badge-days">⏱️ 63 days running</span>
+      <span class="badge badge-cta">📲 Book now</span>
+      <span class="badge badge-theme">💰 Zero Investment</span>
+      <span class="badge badge-theme">🏛️ Govt Subsidy</span>
+      <span class="badge badge-theme">📦 EMI Financing</span>
+    </div>
+    <div class="ad-copy">Library ID: 913073618237017 · Started: Apr 2, 2026<br><br>"💰 90% बिजली बिल कम करें और उसी बचत से भरें अपनी EMI — वो भी ₹0 इन्वेस्टमेंट पर! Government subsidy + bill savings makes solar installation completely easy — Book now! ☀️" + FB.ME link: "₹0 में सोलर, ज़ीरो टेंशन! 🙌"</div>
+    <div style="margin-top:10px; font-size:0.84rem; color:#718096;"><strong>Why it works:</strong> The "zero tension" tagline is emotionally powerful — it's not just about money, it's about peace of mind. The EMI-from-savings mechanism makes the math undeniable. Strong emotional + rational double-punch.</div>
+  </div>
+
+  <div class="ad-card" style="border-left-color: #e53e3e;">
+    <div class="ad-header"><span class="ad-rank" style="background:#e53e3e;">10</span><span class="ad-title-text">"Breaking News" — Cluster Version (2 ads same creative)</span></div>
+    <div class="ad-meta">
+      <span class="badge badge-video">🎬 Video (33s)</span>
+      <span class="badge badge-lang">🌐 English+Hindi</span>
+      <span class="badge badge-days">⏱️ 65 days running</span>
+      <span class="badge badge-cta">📲 Get Quote</span>
+      <span class="badge badge-theme">📰 Breaking News Hook</span>
+      <span class="badge badge-theme">🏛️ Govt Subsidy</span>
+    </div>
+    <div class="ad-copy">Library ID: 3495320993976699 · Started: Mar 31, 2026 · (2 ads use this creative and text)<br><br>"Breaking News! Turn your rooftop into a GOLDMINE! Earn up to ₹1,08,000 in government subsidy. Ready to cash in? Book your FREE consultation now! [90% बिल में कमी]"</div>
+    <div style="margin-top:10px; font-size:0.84rem; color:#718096;"><strong>Why it works:</strong> Duplicate of the Breaking News template running as a separate ad unit — common strategy to re-enter the auction and increase reach. With 2 ads sharing the same creative, SolarSquare gets more inventory allocation for their best-performing concept.</div>
+  </div>
+</div>
+<!-- SECTION 6: LONGEST RUNNING ADS -->
+<div class="section">
+  <div class="section-title"><span class="icon">⏳</span> 6. Longest Running Ads & Trend Summary</div>
+  <div class="grid-2">
+    <div class="card">
+      <h3 style="margin-bottom:16px; color:#1a365d;">Ad Lifespan Distribution (Active Ads)</h3>
+      <div class="chart-container"><canvas id="lifespanChart"></canvas></div>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:16px; color:#1a365d;">Top 10 Longest-Running Active Ads</h3>
+      <div class="scrollable-table">
+        <table>
+          <thead><tr><th>#</th><th>Library ID</th><th>Started</th><th>Days</th><th>Format</th><th>Language</th><th>Theme</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td style="font-size:0.78rem">1863790924318742</td><td>Mar 30, 2026</td><td><strong>66</strong></td><td>Static</td><td>Marathi</td><td>Zero Investment</td></tr>
+            <tr><td>2</td><td style="font-size:0.78rem">1703946821018753</td><td>Mar 30, 2026</td><td><strong>66</strong></td><td>Static</td><td>English</td><td>Zero Investment</td></tr>
+            <tr><td>3</td><td style="font-size:0.78rem">1462390112035116</td><td>Mar 30, 2026</td><td><strong>66</strong></td><td>Static</td><td>Marathi</td><td>Stress-Free Solar</td></tr>
+            <tr><td>4</td><td style="font-size:0.78rem">958490179930186</td><td>Mar 30, 2026</td><td><strong>66</strong></td><td>Static</td><td>English</td><td>Guaranteed Savings</td></tr>
+            <tr><td>5</td><td style="font-size:0.78rem">4374571089537611</td><td>Mar 30, 2026</td><td><strong>66</strong></td><td>Static</td><td>Marathi</td><td>Guaranteed Savings</td></tr>
+            <tr><td>6</td><td style="font-size:0.78rem">1521725719289285</td><td>Mar 31, 2026</td><td><strong>65</strong></td><td>Video (33s)</td><td>English</td><td>Breaking News / Subsidy</td></tr>
+            <tr><td>7</td><td style="font-size:0.78rem">1306017914723930</td><td>Mar 31, 2026</td><td><strong>65</strong></td><td>Video (94s)</td><td>Hindi</td><td>Fast Installation</td></tr>
+            <tr><td>8</td><td style="font-size:0.78rem">914326674820894</td><td>Mar 31, 2026</td><td><strong>65</strong></td><td>Video (63s)</td><td>Marathi</td><td>90% Bill Reduction</td></tr>
+            <tr><td>9</td><td style="font-size:0.78rem">913073618237017</td><td>Apr 2, 2026</td><td><strong>63</strong></td><td>Static</td><td>Hindi</td><td>₹0 Investment + EMI</td></tr>
+            <tr><td>10</td><td style="font-size:0.78rem">3495320993976699</td><td>Mar 31, 2026</td><td><strong>65</strong></td><td>Video (33s)</td><td>English</td><td>Breaking News / Subsidy</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="grid-3" style="margin-top:20px;">
+    <div class="insight-box green">
+      <h4>📌 Evergreen Templates: Mar 30–31 Launch</h4>
+      <p>SolarSquare's "campaign foundation" launched on March 30–31, 2026 — 36 ads from this cohort are still running after 65+ days. These are their proven winners: Zero Investment (static), Breaking News (short video), and 90% Bill Reduction. They haven't been turned off because they keep performing.</p>
+    </div>
+    <div class="insight-box orange">
+      <h4>📈 Trend: Accelerating Upload Pace</h4>
+      <p>Upload velocity has increased sharply: March saw 21 ads, April 68, and May 187 (through May 23). The May 14 and May 23 cohorts launched 26 new ads each on a single day — suggesting a coordinated creative refresh cycle every 1–2 weeks.</p>
+    </div>
+    <div class="insight-box blue">
+      <h4>🔄 Keep-Running Strategy</h4>
+      <p>36 ads (12%) have been live for 60+ days. Most solar brands cycle ads every 2–3 weeks. SolarSquare runs proven creatives much longer — likely because ROAS stays positive. Their "Breaking News" template has 5 variants all running simultaneously for 65 days.</p>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 7: CREATIVE VELOCITY -->
+<div class="section">
+  <div class="section-title"><span class="icon">🚀</span> 7. Creative Velocity</div>
+  <div class="grid-2">
+    <div class="card">
+      <h3 style="margin-bottom:16px; color:#1a365d;">New Ads Launched Per Day (Top 20 Days)</h3>
+      <div class="chart-container-lg"><canvas id="velocityChart"></canvas></div>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:16px; color:#1a365d;">Monthly Ad Upload Volume</h3>
+      <div class="chart-container"><canvas id="monthlyChart"></canvas></div>
+      <div style="margin-top:20px;">
+        <div class="velocity-bar">
+          <div class="velocity-bar-label">March 2026</div>
+          <div class="velocity-bar-inner" style="width: 100px;"></div>
+          <div class="velocity-bar-count">21 ads</div>
+        </div>
+        <div class="velocity-bar">
+          <div class="velocity-bar-label">April 2026</div>
+          <div class="velocity-bar-inner" style="width: 230px;"></div>
+          <div class="velocity-bar-count">68 ads</div>
+        </div>
+        <div class="velocity-bar">
+          <div class="velocity-bar-label">May 2026</div>
+          <div class="velocity-bar-inner" style="width: 380px; background: linear-gradient(90deg, #e53e3e, #fc8181);"></div>
+          <div class="velocity-bar-count">187 ads (peak)</div>
+        </div>
+        <div class="velocity-bar">
+          <div class="velocity-bar-label">June 2026 (to Jun 3)</div>
+          <div class="velocity-bar-inner" style="width: 62px; background: linear-gradient(90deg, #805ad5, #b794f4);"></div>
+          <div class="velocity-bar-count">18 ads</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="grid-2" style="margin-top:20px;">
+    <div class="insight-box">
+      <h4>🗓️ Upload Cadence: Burst Pattern</h4>
+      <p><strong>Last upload detected: June 3, 2026</strong> (7 new ads). SolarSquare doesn't upload daily — they use a "burst" model: 25–26 new ads launched on a single day (e.g., May 14 and May 23), then a quiet period, then another burst. This suggests a structured creative production cycle of roughly every 7–10 days.</p>
+    </div>
+    <div class="insight-box orange">
+      <h4>⚡ Scale: ~6.5 New Ads/Day in May</h4>
+      <p>With 187 ads in May (~31 active days), SolarSquare was averaging 6+ new ad launches per day. This is high-velocity performance marketing — each "launch" is likely a new creative variant being entered into the auction to test. They're likely running creative testing continuously.</p>
+    </div>
+  </div>
+  <div class="card" style="margin-top:20px;">
+    <h3 style="margin-bottom:16px; color:#1a365d;">Peak Upload Days (Top 10)</h3>
+    <div class="scrollable-table">
+      <table>
+        <thead><tr><th>Date</th><th>Ads Launched</th><th>Observation</th></tr></thead>
+        <tbody>
+          <tr><td>May 23, 2026</td><td><strong>26</strong></td><td>Major creative refresh — likely new campaign flight</td></tr>
+          <tr><td>May 14, 2026</td><td><strong>26</strong></td><td>Coordinated batch launch — new summer campaign</td></tr>
+          <tr><td>May 8, 2026</td><td><strong>25</strong></td><td>Large batch launch — multiple language variants</td></tr>
+          <tr><td>May 7, 2026</td><td><strong>16</strong></td><td>New flight pre-load day before May 8 batch</td></tr>
+          <tr><td>May 22, 2026</td><td><strong>14</strong></td><td>Pre-launch staging for May 23 burst</td></tr>
+          <tr><td>May 21, 2026</td><td><strong>14</strong></td><td>Continued refresh</td></tr>
+          <tr><td>May 5, 2026</td><td><strong>14</strong></td><td>New creative wave mid-month</td></tr>
+          <tr><td>Apr 2, 2026</td><td><strong>14</strong></td><td>April campaign kickoff</td></tr>
+          <tr><td>Mar 31, 2026</td><td><strong>16</strong></td><td>Initial campaign foundation launch</td></tr>
+          <tr><td>May 15, 2026</td><td><strong>11</strong></td><td>Follow-up to May 14 burst</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 8: LANGUAGE BREAKDOWN -->
+<div class="section">
+  <div class="section-title"><span class="icon">🌐</span> 8. Language Split</div>
+  <div class="grid-2">
+    <div class="card">
+      <h3 style="margin-bottom:16px; color:#1a365d;">Language Distribution (294 Active Ads)</h3>
+      <div class="chart-container"><canvas id="languageChart"></canvas></div>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:16px; color:#1a365d;">Language Strategy Insights</h3>
+      <div class="scrollable-table">
+        <table>
+          <thead><tr><th>Language</th><th>Count</th><th>%</th><th>Key Markets / Insight</th></tr></thead>
+          <tbody>
+            <tr><td><strong>English</strong></td><td>122</td><td>41%</td><td>National reach, urban pan-India audience, subsidy & ROI messaging</td></tr>
+            <tr><td><strong>Hindi</strong></td><td>99</td><td>34%</td><td>North India, UP, MP, Bihar, Delhi NCR — "₹0 investment + EMI" focus</td></tr>
+            <tr><td><strong>Marathi</strong></td><td>55</td><td>19%</td><td>Maharashtra (Pune, Mumbai, Nagpur) — largest regional investment</td></tr>
+            <tr><td><strong>Gujarati</strong></td><td>8</td><td>3%</td><td>Gujarat — safety/WindPro focus, differentiating on storm-resistance</td></tr>
+            <tr><td><strong>Telugu</strong></td><td>7</td><td>2%</td><td>Andhra Pradesh &amp; Telangana — emerging solar market</td></tr>
+            <tr><td><strong>Tamil</strong></td><td>3</td><td>1%</td><td>Tamil Nadu — small but active, "₹0 investment" messaging</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top:16px;" class="insight-box">
+        <h4>🗺️ Regional Strategy Inference</h4>
+        <p><strong>Marathi is the biggest regional investment</strong> (55 ads, 19%) — Maharashtra is clearly SolarSquare's strongest non-English market, likely reflecting their strongest installer presence. Gujarati is disproportionately quality-focused (WindPro) vs cost-focused, suggesting a premium positioning in that market. Tamil &amp; Telugu are underinvested relative to market size, possibly indicating earlier-stage expansion.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CHARTS SCRIPTS -->
+<script>
+Chart.defaults.font.family = "'Segoe UI', system-ui, sans-serif";
+
+// Format Chart
+new Chart(document.getElementById('formatChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Video Ads (69%)', 'Static/Image Ads (31%)'],
+    datasets: [{data: [202, 92], backgroundColor: ['#2d6a4f', '#48bb78'], borderWidth: 3, borderColor: '#fff'}]
+  },
+  options: {responsive:true, maintainAspectRatio:false, plugins: {legend:{position:'bottom'}}}
+});
+
+// Duration Chart
+new Chart(document.getElementById('durationChart'), {
+  type: 'bar',
+  data: {
+    labels: ['≤30s', '30–60s', '60–120s'],
+    datasets: [{label: '# of Video Ads', data: [58, 89, 55], backgroundColor: ['#2b6cb0','#2d6a4f','#805ad5'], borderRadius: 6}]
+  },
+  options: {responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}}
+});
+
+// Partnership Chart
+new Chart(document.getElementById('partnerChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Brand Ads (100%)', 'Partnership Ads (0%)'],
+    datasets: [{data: [294, 0], backgroundColor: ['#1a365d', '#e2e8f0'], borderWidth: 3, borderColor: '#fff'}]
+  },
+  options: {responsive:true, maintainAspectRatio:false, plugins: {legend:{position:'bottom'}}}
+});
+
+// Messaging Chart
+new Chart(document.getElementById('messagingChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Free Consultation CTA','Govt Subsidy Mention','90% Bill Reduction','Zero Investment','EMI Financing','Guaranteed Savings','No.1 Brand India','Summer/AC Beat','Service 5yr','24% ROI','WindPro Safety','Breaking News Hook','Testimonial Story'],
+    datasets: [{label: 'Ad Count', data: [156,109,87,72,80,32,20,23,28,11,9,5,8],
+      backgroundColor: ['#2d6a4f','#2b6cb0','#e53e3e','#f6ad55','#805ad5','#38a169','#dd6b20','#0694a2','#553c9a','#c05621','#e2a908','#e53e3e','#48bb78'], borderRadius: 4}]
+  },
+  options: {indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true}}}
+});
+
+// Lifespan Chart
+new Chart(document.getElementById('lifespanChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['60+ days', '45–59 days', '30–44 days', '15–29 days', '7–14 days', '1–6 days'],
+    datasets: [{data: [36,44,25,114,57,18],
+      backgroundColor: ['#1a365d','#2d6a4f','#2b6cb0','#38a169','#f6ad55','#e53e3e'], borderWidth: 3, borderColor: '#fff'}]
+  },
+  options: {responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'right'}}}
+});
+
+// Velocity Chart
+new Chart(document.getElementById('velocityChart'), {
+  type: 'bar',
+  data: {
+    labels: ['May 23','May 14','May 8','Mar 31','May 7','May 22','May 21','May 5','Apr 2','May 15','May 11','Jun 2','Jun 3','May 12','May 9','Apr 13','Apr 15','Apr 9','May 19','May 20'],
+    datasets: [{label: 'Ads Launched', data: [26,26,25,16,16,14,14,14,14,11,8,10,7,6,6,10,10,7,3,4],
+      backgroundColor: '#2d6a4f', borderRadius: 4}]
+  },
+  options: {responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}}
+});
+
+// Monthly Chart
+new Chart(document.getElementById('monthlyChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Mar 2026', 'Apr 2026', 'May 2026', 'Jun 2026 (partial)'],
+    datasets: [{label: 'Ads Launched', data: [21,68,187,18],
+      backgroundColor: ['#48bb78','#2d6a4f','#1a365d','#805ad5'], borderRadius: 6}]
+  },
+  options: {responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}}
+});
+
+// Language Chart
+new Chart(document.getElementById('languageChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['English (41%)', 'Hindi (34%)', 'Marathi (19%)', 'Gujarati (3%)', 'Telugu (2%)', 'Tamil (1%)'],
+    datasets: [{data: [122,99,55,8,7,3],
+      backgroundColor: ['#2b6cb0','#e53e3e','#f6ad55','#38a169','#805ad5','#0694a2'], borderWidth: 3, borderColor: '#fff'}]
+  },
+  options: {responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'right'}}}
+});
+</script>
+
+<div class="footnote">
+  <strong>Methodology Note:</strong> This analysis is based on 294 active ads loaded from Meta's Ad Library for SolarSquare Energy (Page ID: 107775910901755), sorted by total impressions descending as of June 4, 2026. Meta does not disclose exact impression counts for Indian advertisers — "ranked by impressions" refers to the Ad Library's sort order. Language detection was performed via Unicode character range analysis on ad copy text. Creative velocity is based on "Started running on" dates extracted from ad metadata. Total active ads per Meta: ~440; the analyzed sample of 294 represents the highest-impression cohort. The page was created on April 16, 2020 and is managed by 26 people in India.
+</div>
+
+</div>
+</body>
+</html>
